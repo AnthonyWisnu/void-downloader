@@ -10,27 +10,23 @@ const { runYtDlp, runGalleryDl, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
 
-const BROWSER_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+const {
+  BROWSER_USER_AGENT,
+  OUTPUT_EXTENSIONS,
+  getRawProcessError,
+  logProcessStderr
+} = require("./engine-base.service");
 
 const PRIMARY_MERGE_FORMAT =
   "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4][vcodec^=avc1]/best[ext=mp4]/best";
 const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best";
-const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
 function getRawError(error) {
-  return [error?.stderr, error?.stdout, error?.message].filter(Boolean).join("\n");
+  return getRawProcessError(error);
 }
 
 function logYtDlpStderr(error) {
-  const stderr = String(error?.stderr || "").trim();
-
-  if (!stderr) {
-    return;
-  }
-
-  const firstLine = stderr.split(/\r?\n/).find(Boolean) || stderr;
-  console.warn(`[instagram] yt-dlp stderr: ${firstLine.slice(0, 240)}`);
+  logProcessStderr("instagram", error);
 }
 
 function logAudioConvertError(error, audioUrl) {

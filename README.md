@@ -11,10 +11,10 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
 ## Fitur Utama
 
 ### 1. Multi-Platform Media Engine
-- **YouTube**: Mendukung video standar (hingga 1080p/720p), YouTube Shorts, dan ekstraksi audio MP3 kualitas studio.
+- **YouTube**: Mendukung video standar (hingga 1080p/720p), YouTube Shorts, YouTube Community posts, dan ekstraksi audio MP3 kualitas studio.
 - **TikTok**: Mendukung video tanpa watermark (HD), video dengan watermark, foto slideshow resolusi penuh, dan audio latar MP3.
-- **Instagram**: Mendukung Reels, postingan video feed, postingan foto, carousel multipost, Instagram Stories, dan audio track dengan dukungan autentikasi cookies Netscape.
-- **X (Twitter)**: Mendukung video tweet, animasi GIF (MP4), foto tunggal/slideshow multi-foto hingga 4 gambar dengan resolusi asli (orig), dan audio MP3.
+- **Instagram**: Mendukung Reels, postingan video feed, postingan foto tunggal, carousel multi-slide via gallery-dl fallback, Instagram Stories, dan audio track dengan dukungan autentikasi cookies Netscape serta guest extraction fallback otomatis.
+- **X (Twitter)**: Mendukung video tweet, animasi GIF (MP4), foto tunggal/slideshow multi-foto hingga 4 gambar dengan resolusi asli (orig), mixed media, dan audio MP3.
 
 ### 2. Video Normalization Pipeline (iOS & Cross-Device Compatible)
 - Pemrosesan video otomatis via FFmpeg dan FFprobe:
@@ -22,22 +22,35 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
   - Audio dikodekan ke AAC 128 kbps.
   - Flag MP4 `+faststart` disematkan di awal file (moov atom di awal) agar video dapat langsung di-stream dan diputar tanpa menunggu download selesai di Safari, iOS, Chrome, dan Android.
 
-### 3. Smart Caching & Stream Range Support
+### 3. Concurrency Semaphore & Proteksi Sumber Daya Server
+- Dirancang khusus untuk efisiensi tinggi pada VPS berspesifikasi hemat (misalnya 2 vCPU / 2 GB RAM).
+- In-memory `ConcurrencyLimiter` (Semaphore) membatasi proses berat simultan (`MAX_CONCURRENT_HEAVY_JOBS = 2`).
+- Operasi transcode CPU-bound FFmpeg dan merge video `yt-dlp` otomatis mengantre dengan batas waktu tunggu terukur (timeout 60 detik), mencegah terjadinya Linux Out-of-Memory (OOM) Killer.
+- Pembacaan metadata JSON (`--dump-json`) tetap dieksekusi instan tanpa menahan slot antrian video.
+
+### 4. Smart Caching & Manajemen Kuota Disk LRU
 - Manajemen cache berbasis hash SHA-256 di direktori temporary sistem (`/tmp/void-dl-cache`).
 - Dukungan HTTP 206 Partial Content (Byte-Range requests) untuk pemutaran instan pada preview video dan audio di browser.
-- Mekanisme pembersihan file cache kedaluwarsa secara otomatis (TTL 2 jam).
+- **Pembersihan Berbasis Kuota LRU**: Jika akumulasi file di direktori cache melebihi 3 GB (`MAX_CACHE_SIZE_BYTES`), sistem otomatis menghapus berkas tertua (`mtimeMs`) hingga kapasitas turun ke batas aman (2.1 GB).
+- Pembersihan berkas kedaluwarsa berbasis waktu (TTL 2 jam) tetap berjalan secara berkala setiap 30 menit.
 
-### 4. Keamanan & Proteksi SSRF
-- Validasi URL berlapis dan pemblokiran alamat IP privat/loopback (SSRF prevention).
-- Media proxy server-side untuk melindungi privasi pengguna dan mencegah pembatasan CORS atau hotlinking dari CDN pihak ketiga (Instagram CDN, TikTok CDN, Google Video, Twitter Media).
-- File cookies dan kredensial sensitif diisolasi di sisi server dan tidak pernah diekspos ke frontend.
+### 5. Keamanan & Proteksi SSRF Anti-DNS Rebinding
+- **Safe Socket Agent**: Menghalangi akses ke seluruh jangkauan IP privat, loopback, link-local, carrier-grade NAT (`100.64.0.0/10`), IPv6 ULA (`fc00::/7`), dan IPv4-mapped IPv6 (`::ffff:127.0.0.1`).
+- Menggunakan custom HTTP/HTTPS Agent dengan `safeDnsLookup` yang memvalidasi alamat IP saat koneksi socket TCP dibuka, menutup celah Time-of-Check to Time-of-Use (TOCTOU) DNS Rebinding.
+- **Batch ZIP Protection**: Pembatasan metode `POST` saja, kuota maksimal 30 item per arsip, dan pemutus stream otomatis (`req.on("close")`) saat pengguna membatalkan unduhan guna mencegah eksploitasi bandwidth dan memori.
+- Media proxy server-side untuk melindungi privasi pengguna dan mencegah pembatasan CORS atau hotlinking dari CDN pihak ketiga.
+
+### 6. Standardisasi Nama Berkas (Collision-Proof)
+- Format penamaan file konsisten dan informatif di semua platform:
+  - Format: `[VOID]_[Platform]_[Author]_[Title]_[Kind]_[Timestamp].[ext]`
+  - Mencegah benturan nama file, membersihkan karakter ilegal OS, dan memudahkan arsip unduhan pengguna.
 
 ---
 
 ## Tech Stack
 
 ### Frontend
-- **Framework**: React 19 + Vite 6
+- **Framework**: React 18 + Vite 5
 - **Styling**: Modular CSS, CSS Custom Properties (Variables), Responsive Grid/Flexbox
 - **Icons**: Lucide React + Custom Inline SVG Brand Logos
 - **HTTP Client**: Axios
@@ -45,11 +58,13 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
 ### Backend
 - **Runtime**: Node.js (LTS v20+)
 - **Framework**: Express.js
-- **Middleware**: CORS, JSON Body Parser
-- **Extraction Tools**: `@tobyg74/tiktok-api-dl`, `instagram-url-direct`, `yt-dlp` CLI wrapper
+- **Middleware**: CORS, Rate Limiting (`express-rate-limit`), JSON Body Parser
+- **Extraction Tools**: `@tobyg74/tiktok-api-dl`, `instagram-url-direct`, `yt-dlp` CLI wrapper, `gallery-dl`
 - **Media Transcoder**: FFmpeg & FFprobe (child_process streaming)
+- **Archiving**: Archiver (ZIP streaming)
 
 ### Production & Server Infrastructure
+- **Hosting**: Tencent Cloud Lighthouse (2 vCPU, 2 GB RAM, 50 GB SSD)
 - **Operating System**: Ubuntu 24.04 LTS
 - **Process Manager**: PM2 (Cluster/Fork mode)
 - **Web Server & Reverse Proxy**: Nginx
@@ -95,7 +110,9 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
 │   │   │   └── variables.css           # Variabel tema global dan tema adaptif per brand
 │   │   ├── utils/
 │   │   │   ├── detectPlatform.js       # Validasi domain dan deteksi platform URL
+│   │   │   ├── filenameHelper.js       # Generator nama file unduhan terstandarisasi
 │   │   │   ├── mediaAdapter.js         # Normalisasi payload backend untuk UI konsisten
+│   │   │   ├── mediaBatch.js           # Client-side handler untuk pengunduhan paket ZIP
 │   │   │   └── mediaProxy.js           # Helper penyusun URL proxy backend
 │   │   ├── App.jsx                     # Root application container (data-platform attribute)
 │   │   ├── globals.css                 # Import stylesheet utama
@@ -111,27 +128,35 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
 │   │   └── x_cookies.txt               # Cookies X/Twitter (Netscape format, gitignored)
 │   ├── src/
 │   │   ├── controllers/
+│   │   │   ├── batch.controller.js     # Pembuatan arsip ZIP multi-slide streaming
 │   │   │   ├── download.controller.js  # Dispatcher unduhan berdasarkan platform
-│   │   │   ├── file.controller.js      # Streaming file dari cache sistem
-│   │   │   ├── media.controller.js     # Media proxy dengan validasi SSRF
-│   │   │   └── preview.controller.js   # Preview controller (legacy)
+│   │   │   ├── file.controller.js      # Streaming file dari cache internal
+│   │   │   └── media.controller.js     # Media proxy dengan validasi SSRF anti-rebinding
+│   │   ├── middlewares/
+│   │   │   └── rateLimiter.js          # Rate limiter untuk download dan streaming
 │   │   ├── routes/
 │   │   │   └── download.routes.js      # Routing Express API
 │   │   ├── services/
 │   │   │   ├── audio-cache.service.js   # Ekstraksi dan konversi audio MP3
 │   │   │   ├── cookies.service.js      # Parser dan validator cookies Netscape
+│   │   │   ├── engine-base.service.js  # Reusable base engine runner yt-dlp & cache helpers
 │   │   │   ├── image-download.service.js# Konversi webp ke jpeg untuk download foto
-│   │   │   ├── instagram.service.js    # Ekstraksi media Instagram via yt-dlp / API
-│   │   │   ├── media-cache.service.js  # Utilitas caching disk SHA-256 dan TTL cleanup
+│   │   │   ├── instagram.service.js    # Ekstraksi media Instagram via yt-dlp / gallery-dl / API
+│   │   │   ├── media-cache.service.js  # Utilitas cache disk, TTL cleanup, dan kuota LRU
 │   │   │   ├── tiktok.service.js       # Ekstraksi media TikTok
 │   │   │   ├── video-cache.service.js  # Manajemen cache video ter-normalisasi
 │   │   │   ├── video-normalize.service.js # Pipeline FFmpeg H.264 FastStart
 │   │   │   ├── x.service.js            # Ekstraksi video, foto, GIF dari X (Twitter)
 │   │   │   └── youtube.service.js      # Ekstraksi video dan audio dari YouTube
 │   │   ├── utils/
+│   │   │   ├── concurrency.js          # Semaphore limiter untuk kontrol beban proses
+│   │   │   ├── errors.js               # Helper konstruktor error layanan terstandarisasi
 │   │   │   ├── execTool.js             # Async wrapper child_process yt-dlp dan ffmpeg
+│   │   │   ├── filenameHelper.js       # Sanitasi dan generator nama berkas
+│   │   │   ├── safeRequest.js          # Safe DNS lookup dan agent anti-SSRF
 │   │   │   └── sanitizeUrl.js          # Validasi whitelist protokol dan hostname
 │   │   └── app.js                      # Inisialisasi Express server
+│   ├── test-audit.js                   # Skrip pengujian otomatis unit & audit
 │   ├── .env.example                    # Contoh variabel lingkungan
 │   └── package.json
 │
@@ -182,36 +207,13 @@ Menganalisis URL media dan menghasilkan link unduhan terstruktur.
   "downloads": [
     {
       "label": "MP4 / VIDEO",
-      "url": "/api/file?token=a1b2c3d4e5f6...&download=1",
+      "url": "/api/file?token=a1b2c3d4e5f6...&download=1&filename=VOID_YouTube_Rick-Astley_video.mp4",
       "format": "mp4"
     },
     {
       "label": "Audio Only",
-      "url": "/api/file?token=f6e5d4c3b2a1...&kind=audio&download=1",
+      "url": "/api/file?token=f6e5d4c3b2a1...&kind=audio&download=1&filename=VOID_YouTube_Rick-Astley_audio.mp3",
       "format": "mp3"
-    }
-  ]
-}
-```
-
-- **Successful Response (Slideshow / Foto)**:
-```json
-{
-  "platform": "x",
-  "type": "slideshow",
-  "title": "Photo post on X",
-  "thumbnail": "https://pbs.twimg.com/media/Example.jpg?name=orig",
-  "sourceUrl": "https://x.com/user/status/123456789",
-  "downloads": [
-    {
-      "label": "Slideshow Image 1",
-      "url": "https://pbs.twimg.com/media/Example1.jpg?name=orig",
-      "format": "jpg"
-    },
-    {
-      "label": "Slideshow Image 2",
-      "url": "https://pbs.twimg.com/media/Example2.jpg?name=orig",
-      "format": "jpg"
     }
   ]
 }
@@ -233,16 +235,52 @@ Menyajikan streaming dan unduhan file media dari cache internal.
   - `token` (wajib): Hash SHA-256 sepanjang 32 karakter heksadesimal.
   - `kind` (opsional): Jenis media (`video` atau `audio`, default `video`).
   - `download` (opsional): `1` untuk menyematkan header `Content-Disposition: attachment`.
+  - `filename` (opsional): Nama file kustom untuk unduhan.
 - **Fitur**: Mendukung header `Range` untuk streaming video/audio (HTTP 206 Partial Content).
 
 ---
 
 ### 4. `GET /api/media`
-Reverse proxy untuk aset eksternal (thumbnail gambar, video remote) dengan validasi anti-SSRF.
+Reverse proxy untuk aset eksternal (thumbnail gambar, video remote) dengan validasi anti-SSRF dan socket-level DNS pinning.
 
 - **Query Parameters**:
   - `url` (wajib): URL target media eksternal (harus lolos validasi DNS public IP).
-  - `download` (opsional): `1` untuk trigger download file langsung dengan nama file yang sesuai.
+  - `download` (opsional): `1` untuk trigger download file langsung.
+  - `filename` (opsional): Nama file kustom.
+
+---
+
+### 5. `POST /api/batch/zip`
+Membuat dan men-stream arsip ZIP multi-slide (misalnya album foto carousel Instagram atau X) on-the-fly.
+
+- **Request Body**:
+```json
+{
+  "title": "album-photos",
+  "filename": "VOID_Instagram_user_all-slides.zip",
+  "items": [
+    { "url": "https://...", "format": "jpg", "filename": "slide-01.jpg" },
+    { "url": "https://...", "format": "jpg", "filename": "slide-02.jpg" }
+  ]
+}
+```
+- **Proteksi**: Dibatasi maksimal 30 item, streaming dibatalkan otomatis jika client disconnect.
+
+---
+
+## Pengujian Otomatis
+
+Proyek menyertakan skrip pengujian otomatis untuk memverifikasi keamanan dan integritas sumber daya:
+
+```bash
+cd backend
+npm test
+```
+
+Cakupan pengujian:
+1. **SSRF IP Filtering**: Memvalidasi penolakan terhadap seluruh range IP privat, loopback, link-local, carrier-grade NAT, dan IPv4-mapped IPv6.
+2. **Concurrency Limiter (Semaphore)**: Memastikan eksekusi paralel dibatasi tepat sesuai konfigurasi tanpa melebihi batas slot aktif.
+3. **LRU Cache Quota Pruning**: Memastikan mekanisme pemotongan kuota disk menghapus berkas tertua saat kapasitas melampaui batas maksimal.
 
 ---
 
@@ -253,6 +291,7 @@ Reverse proxy untuk aset eksternal (thumbnail gambar, video remote) dengan valid
 - Python 3
 - FFmpeg dan FFprobe terpasang di sistem PATH
 - yt-dlp terpasang di sistem PATH
+- gallery-dl (opsional, untuk fallback carousel foto)
 
 ### 1. Setup Backend
 ```bash
@@ -303,6 +342,8 @@ FRONTEND_URL=https://voiddl.my.id,https://www.voiddl.my.id
 IG_COOKIES_PATH=./cookies/ig_cookies.txt
 YT_COOKIES_PATH=./cookies/yt_cookies.txt
 X_COOKIES_PATH=./cookies/x_cookies.txt
+MAX_CONCURRENT_HEAVY_JOBS=2
+MAX_CACHE_SIZE_BYTES=3221225472
 NODE_ENV=production
 ```
 

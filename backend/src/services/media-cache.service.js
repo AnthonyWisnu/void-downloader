@@ -5,8 +5,12 @@ const path = require("path");
 const { pipeline } = require("stream/promises");
 const axios = require("axios");
 
+const { getSafeAxiosAgents } = require("../utils/safeRequest");
+
 const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
 const DOWNLOAD_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
+const MAX_CACHE_SIZE_BYTES = parseInt(process.env.MAX_CACHE_SIZE_BYTES || "3221225472", 10); // 3 GB
+const TARGET_CACHE_SIZE_BYTES = Math.floor(MAX_CACHE_SIZE_BYTES * 0.7); // 2.1 GB
 const TOKEN_PATTERN = /^[a-f0-9]{32}$/i;
 
 function ensureCacheDir(dir = DOWNLOAD_CACHE_DIR) {
@@ -43,12 +47,16 @@ function cleanupFiles(filePaths) {
 }
 
 async function downloadUrlToFile(url, outputPath, headers = {}) {
+  const { httpAgent, httpsAgent } = getSafeAxiosAgents();
+
   const response = await axios.get(url, {
     headers: {
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
       ...headers
     },
+    httpAgent,
+    httpsAgent,
     responseType: "stream",
     timeout: 120000,
     maxRedirects: 5,
@@ -58,6 +66,7 @@ async function downloadUrlToFile(url, outputPath, headers = {}) {
   });
 
   await pipeline(response.data, fs.createWriteStream(outputPath));
+  cleanupCacheLRU();
 }
 
 function cleanupExpiredCache(dir = DOWNLOAD_CACHE_DIR, ttlMs = DOWNLOAD_CACHE_TTL_MS) {
@@ -84,9 +93,69 @@ function cleanupExpiredCache(dir = DOWNLOAD_CACHE_DIR, ttlMs = DOWNLOAD_CACHE_TT
   }
 }
 
+function cleanupCacheLRU(
+  dir = DOWNLOAD_CACHE_DIR,
+  maxSizeBytes = MAX_CACHE_SIZE_BYTES,
+  targetSizeBytes = TARGET_CACHE_SIZE_BYTES
+) {
+  if (!fs.existsSync(dir)) {
+    return;
+  }
+
+  try {
+    const fileEntries = [];
+    let totalSize = 0;
+
+    fs.readdirSync(dir).forEach((fileName) => {
+      const filePath = path.join(dir, fileName);
+      try {
+        const stats = fs.statSync(filePath);
+        if (stats.isFile()) {
+          fileEntries.push({
+            filePath,
+            size: stats.size,
+            mtimeMs: stats.mtimeMs
+          });
+          totalSize += stats.size;
+        }
+      } catch {
+        // Lewati file yang tidak dapat dibaca
+      }
+    });
+
+    if (totalSize <= maxSizeBytes) {
+      return;
+    }
+
+    // Urutkan file berdasarkan waktu perubahan tertua (LRU)
+    fileEntries.sort((a, b) => a.mtimeMs - b.mtimeMs);
+
+    for (const entry of fileEntries) {
+      if (totalSize <= targetSizeBytes) {
+        break;
+      }
+
+      try {
+        fs.rmSync(entry.filePath, { force: true });
+        totalSize -= entry.size;
+      } catch {
+        // Lewati jika file sedang di-lock
+      }
+    }
+  } catch {
+    // Abaikan kegagalan saat proses pembersihan LRU
+  }
+}
+
+function cleanupCache(dir = DOWNLOAD_CACHE_DIR) {
+  cleanupExpiredCache(dir);
+  cleanupCacheLRU(dir);
+}
+
 module.exports = {
   DOWNLOAD_CACHE_DIR,
   DOWNLOAD_CACHE_TTL_MS,
+  MAX_CACHE_SIZE_BYTES,
   TOKEN_PATTERN,
   ensureCacheDir,
   getCacheToken,
@@ -94,5 +163,7 @@ module.exports = {
   hasUsableFile,
   cleanupFiles,
   downloadUrlToFile,
-  cleanupExpiredCache
+  cleanupExpiredCache,
+  cleanupCacheLRU,
+  cleanupCache
 };

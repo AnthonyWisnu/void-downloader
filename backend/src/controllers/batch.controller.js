@@ -1,6 +1,6 @@
 const archiver = require("archiver");
 const axios = require("axios");
-const { validateMediaUrl } = require("./media.controller");
+const { validateMediaUrl, getSafeAxiosAgents } = require("../utils/safeRequest");
 const { sanitizeSafeFilename } = require("../utils/filenameHelper");
 
 function sanitizeFilename(name) {
@@ -12,30 +12,25 @@ function sanitizeFilename(name) {
 }
 
 async function createBatchZip(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "ERR: Method tidak diizinkan. Gunakan POST." });
+  }
+
+  let clientAborted = false;
+
   try {
-    let title = "slides";
-    let items = [];
-    const customFilename = req.body?.filename || req.query?.filename;
+    const title = req.body?.title || "slides";
+    const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
+    const customFilename = req.body?.filename;
 
-    if (req.method === "POST") {
-      title = req.body?.title || title;
-      items = Array.isArray(req.body?.items) ? req.body.items : [];
-    } else if (req.method === "GET") {
-      title = req.query?.title || title;
-      try {
-        items = JSON.parse(req.query?.items || "[]");
-      } catch {
-        items = [];
-      }
-    }
-
-    if (!Array.isArray(items) || items.length === 0) {
+    if (rawItems.length === 0) {
       return res.status(400).json({ error: "ERR: Daftar media untuk ZIP kosong atau tidak valid" });
     }
 
-    // Batasi hingga 50 item per batch agar performa server terjaga
-    const safeItems = items.slice(0, 50);
+    // Batasi hingga 30 item per batch agar performa memori dan CPU server 2GB tetap terjaga
+    const safeItems = rawItems.slice(0, 30);
     let zipFilename;
+
     if (customFilename && typeof customFilename === "string") {
       zipFilename = sanitizeSafeFilename(customFilename, "zip");
     } else {
@@ -49,6 +44,15 @@ async function createBatchZip(req, res) {
 
     const archive = archiver("zip", {
       zlib: { level: 6 }
+    });
+
+    req.on("close", () => {
+      clientAborted = true;
+      try {
+        archive.abort();
+      } catch {
+        // Abaikan error saat abort arsip
+      }
     });
 
     archive.on("warning", (warn) => {
@@ -66,7 +70,13 @@ async function createBatchZip(req, res) {
 
     archive.pipe(res);
 
+    const { httpAgent, httpsAgent } = getSafeAxiosAgents();
+
     for (let i = 0; i < safeItems.length; i++) {
+      if (clientAborted) {
+        break;
+      }
+
       const item = safeItems[i];
       const rawUrl = typeof item === "string" ? item : (item?.url || item?.rawUrl);
 
@@ -89,11 +99,20 @@ async function createBatchZip(req, res) {
         const streamResponse = await axios.get(parsedUrl.toString(), {
           responseType: "stream",
           timeout: 25000,
+          httpAgent,
+          httpsAgent,
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
             Referer: parsedUrl.origin
           }
         });
+
+        if (clientAborted) {
+          if (typeof streamResponse.data.destroy === "function") {
+            streamResponse.data.destroy();
+          }
+          break;
+        }
 
         archive.append(streamResponse.data, { name: slideName });
       } catch (itemErr) {
@@ -101,7 +120,9 @@ async function createBatchZip(req, res) {
       }
     }
 
-    await archive.finalize();
+    if (!clientAborted) {
+      await archive.finalize();
+    }
   } catch (error) {
     console.error("[batch-zip] Exception:", error.message);
     if (!res.headersSent) {

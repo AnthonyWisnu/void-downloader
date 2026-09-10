@@ -4,7 +4,7 @@ const cors = require("cors");
 const express = require("express");
 const downloadRoutes = require("./routes/download.routes");
 const { validateAllCookiesOnStartup } = require("./services/cookies.service");
-const { cleanupExpiredCache } = require("./services/media-cache.service");
+const { cleanupCache } = require("./services/media-cache.service");
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -26,7 +26,7 @@ app.use(
         return;
       }
 
-      callback(new Error("Origin tidak diizinkan"));
+      callback(new Error("CORS origin tidak diizinkan"));
     }
   })
 );
@@ -50,12 +50,12 @@ let cleanupTimer = null;
 
 if (require.main === module) {
   validateAllCookiesOnStartup();
-  cleanupExpiredCache();
+  cleanupCache();
 
-  // Jalankan pembersihan cache kedaluwarsa secara berkala setiap 30 menit
+  // Jalankan pembersihan cache berkala (TTL dan LRU kuota) setiap 30 menit
   cleanupTimer = setInterval(() => {
     try {
-      cleanupExpiredCache();
+      cleanupCache();
     } catch (cleanupErr) {
       process.stderr.write(`cache cleanup error: ${cleanupErr.message}\n`);
     }

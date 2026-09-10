@@ -11,7 +11,6 @@ router.get("/health", healthCheck);
 router.get("/file", mediaStreamRateLimiter, downloadFile);
 router.get("/media", mediaStreamRateLimiter, proxyMedia);
 router.post("/batch/zip", downloadRateLimiter, createBatchZip);
-router.get("/batch/zip", downloadRateLimiter, createBatchZip);
 router.post("/download", downloadRateLimiter, downloadContent);
 
 module.exports = router;

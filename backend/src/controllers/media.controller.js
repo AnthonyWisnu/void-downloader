@@ -1,12 +1,11 @@
-const dns = require("dns/promises");
-const net = require("net");
 const fs = require("fs");
 const axios = require("axios");
 const { downloadFile } = require("./file.controller");
 const { convertWebpStreamToJpeg } = require("../services/image-download.service");
 const { sanitizeSafeFilename } = require("../utils/filenameHelper");
+const { validateMediaUrl, getSafeAxiosAgents } = require("../utils/safeRequest");
 
-const DEFAULT_ERROR = "Media tidak dapat diputar";
+const DEFAULT_ERROR = "ERR: Media tidak dapat diputar";
 const CONTENT_TYPE_EXTENSIONS = {
   "image/jpeg": "jpg",
   "image/jpg": "jpg",
@@ -20,65 +19,6 @@ const CONTENT_TYPE_EXTENSIONS = {
   "video/mp4": "mp4",
   "video/webm": "webm"
 };
-
-function isPrivateIPv4(address) {
-  const parts = address.split(".").map((part) => Number(part));
-
-  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) {
-    return true;
-  }
-
-  const [first, second] = parts;
-
-  return (
-    first === 10 ||
-    first === 127 ||
-    first === 0 ||
-    (first === 172 && second >= 16 && second <= 31) ||
-    (first === 192 && second === 168) ||
-    (first === 169 && second === 254)
-  );
-}
-
-function isPrivateAddress(address) {
-  const type = net.isIP(address);
-
-  if (type === 4) {
-    return isPrivateIPv4(address);
-  }
-
-  if (type === 6) {
-    return address === "::1" || address.toLowerCase().startsWith("fc");
-  }
-
-  return true;
-}
-
-async function validateMediaUrl(rawUrl) {
-  if (typeof rawUrl !== "string" || rawUrl.length === 0) {
-    throw new Error(DEFAULT_ERROR);
-  }
-
-  let parsedUrl;
-
-  try {
-    parsedUrl = new URL(rawUrl);
-  } catch {
-    throw new Error(DEFAULT_ERROR);
-  }
-
-  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-    throw new Error(DEFAULT_ERROR);
-  }
-
-  const records = await dns.lookup(parsedUrl.hostname, { all: true });
-
-  if (records.length === 0 || records.some((record) => isPrivateAddress(record.address))) {
-    throw new Error(DEFAULT_ERROR);
-  }
-
-  return parsedUrl;
-}
 
 function getRequestHeaders(req, parsedUrl) {
   const headers = {
@@ -227,6 +167,7 @@ async function sendConvertedWebpDownload(res, upstream, customFilename) {
 async function fetchSecureUpstream(initialUrl, req, maxHops = 3) {
   let currentUrl = initialUrl;
   let hops = 0;
+  const { httpAgent, httpsAgent } = getSafeAxiosAgents();
 
   while (hops <= maxHops) {
     const parsedUrl = await validateMediaUrl(currentUrl);
@@ -234,6 +175,8 @@ async function fetchSecureUpstream(initialUrl, req, maxHops = 3) {
 
     const response = await axios.get(parsedUrl.toString(), {
       headers,
+      httpAgent,
+      httpsAgent,
       responseType: "stream",
       timeout: 60000,
       maxRedirects: 0,
@@ -264,13 +207,17 @@ async function proxyMedia(req, res) {
 
     if (typeof req.query.url === "string" && req.query.url.startsWith("/api/file?")) {
       const internalUrl = new URL(req.query.url, "http://127.0.0.1");
-      req.query.token = internalUrl.searchParams.get("token") || "";
-      req.query.kind = internalUrl.searchParams.get("kind") || "";
-      req.query.download = req.query.download === "1" ? "1" : internalUrl.searchParams.get("download");
-      if (!req.query.filename && internalUrl.searchParams.get("filename")) {
-        req.query.filename = internalUrl.searchParams.get("filename");
-      }
-      downloadFile(req, res);
+      const syntheticReq = {
+        ...req,
+        query: {
+          token: internalUrl.searchParams.get("token") || "",
+          kind: internalUrl.searchParams.get("kind") || "",
+          download: req.query.download === "1" ? "1" : (internalUrl.searchParams.get("download") || "0"),
+          filename: customFilename || internalUrl.searchParams.get("filename") || ""
+        },
+        headers: req.headers
+      };
+      downloadFile(syntheticReq, res);
       return;
     }
 
@@ -286,6 +233,13 @@ async function proxyMedia(req, res) {
     }
 
     setProxyHeaders(res, upstream, shouldDownload, parsedUrl, customFilename);
+
+    req.on("close", () => {
+      if (upstream && upstream.data && typeof upstream.data.destroy === "function") {
+        upstream.data.destroy();
+      }
+    });
+
     upstream.data.pipe(res);
   } catch (error) {
     const status = error.response?.status || "no-status";

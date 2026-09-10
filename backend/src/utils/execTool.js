@@ -1,4 +1,5 @@
 const { execFile } = require("child_process");
+const { heavyTaskLimiter } = require("./concurrency");
 
 function execTool(command, args, options = {}) {
   const maxBuffer = options.maxBuffer || 1024 * 1024 * 16;
@@ -26,17 +27,29 @@ function execTool(command, args, options = {}) {
 }
 
 function runYtDlp(args, options = {}) {
-  return execTool("yt-dlp", args, {
-    missingMessage: "yt-dlp belum terinstall",
-    ...options
-  });
+  const isHeavy = options.heavy === true || (options.heavy !== false && !args.includes("--dump-json"));
+
+  const execute = () =>
+    execTool("yt-dlp", args, {
+      missingMessage: "yt-dlp belum terinstall",
+      ...options
+    });
+
+  if (isHeavy) {
+    return heavyTaskLimiter.run(execute);
+  }
+
+  return execute();
 }
 
 function runFfmpeg(args, options = {}) {
-  return execTool("ffmpeg", args, {
-    missingMessage: "ffmpeg belum terinstall",
-    ...options
-  });
+  const execute = () =>
+    execTool("ffmpeg", args, {
+      missingMessage: "ffmpeg belum terinstall",
+      ...options
+    });
+
+  return heavyTaskLimiter.run(execute);
 }
 
 function runFfprobe(args, options = {}) {

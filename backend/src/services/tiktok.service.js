@@ -1,14 +1,6 @@
-const fs = require("fs");
-const path = require("path");
 const { getOrCreateMp3FromUrl } = require("./audio-cache.service");
 const { downloadUrlToFile, getOrCreateNormalizedVideo } = require("./video-cache.service");
-const {
-  DOWNLOAD_CACHE_DIR,
-  ensureCacheDir,
-  getCacheToken,
-  getCacheFilePath
-} = require("./media-cache.service");
-const { runYtDlp } = require("../utils/execTool");
+const { downloadGenericAudio } = require("./engine-base.service");
 const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
 
@@ -59,42 +51,12 @@ function firstString(...values) {
   return "";
 }
 
-async function downloadAudioWithYtDlp(url) {
-  ensureCacheDir();
-
-  const token = getCacheToken(`tiktok-audio:${url}`);
-  const outputPath = getCacheFilePath(token, "mp3");
-
-  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
-    return {
-      token,
-      path: outputPath
-    };
-  }
-
-  const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
-
-  await runYtDlp([
-    "--no-warnings",
-    "--no-playlist",
-    "--extract-audio",
-    "--audio-format",
-    "mp3",
-    "--audio-quality",
-    "0",
-    "--output",
-    `${outputBase}.%(ext)s`,
-    url
-  ]);
-
-  if (!fs.existsSync(outputPath) || fs.statSync(outputPath).size === 0) {
-    throw new Error("Audio TikTok kosong");
-  }
-
-  return {
-    token,
-    path: outputPath
-  };
+function downloadAudioWithYtDlp(url) {
+  return downloadGenericAudio({
+    url,
+    cachePrefix: "tiktok-audio",
+    platformLabel: "TikTok"
+  });
 }
 
 async function createNormalizedVideoDownload(videoUrl, label, filename = "") {

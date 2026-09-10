@@ -1,30 +1,23 @@
-const fs = require("fs");
-const path = require("path");
 const axios = require("axios");
-const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
 const { validateXCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const {
-  DOWNLOAD_CACHE_DIR,
-  ensureCacheDir,
-  getCacheToken,
-  getCacheFilePath,
-  hasUsableFile,
-  cleanupFiles
-} = require("./media-cache.service");
-
-const BROWSER_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+  BROWSER_USER_AGENT,
+  OUTPUT_EXTENSIONS,
+  getRawProcessError,
+  fetchGenericMetadata,
+  createGenericSourceVideo,
+  downloadGenericAudio
+} = require("./engine-base.service");
 
 const PRIMARY_MERGE_FORMAT =
   "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
 const FALLBACK_MERGE_FORMAT = "best";
-const OUTPUT_EXTENSIONS = ["mp4", "mkv", "webm"];
 
 function normalizeXError(error) {
-  const raw = [error?.stderr, error?.stdout, error?.message].filter(Boolean).join("\n").toLowerCase();
+  const raw = getRawProcessError(error).toLowerCase();
 
   if (raw.includes("status is not available") || raw.includes("not found") || raw.includes("http error 404")) {
     return createServiceError("Tweet tidak ditemukan atau telah dihapus", 404);
@@ -42,10 +35,7 @@ function normalizeXError(error) {
 }
 
 function isNoVideoError(error) {
-  const raw = [error?.stderr, error?.stdout, error?.message, error?.rawStderr]
-    .filter(Boolean)
-    .join("\n")
-    .toLowerCase();
+  const raw = getRawProcessError(error).toLowerCase();
 
   return (
     raw.includes("no video formats found") ||
@@ -61,24 +51,8 @@ function extractTweetId(url) {
   return match ? match[1] : null;
 }
 
-function getCookieArgs() {
-  const cookies = validateXCookies();
-  return cookies.ok ? ["--cookies", cookies.path] : [];
-}
-
-async function fetchXMetadata(url) {
-  const args = [
-    ...getCookieArgs(),
-    "--user-agent",
-    BROWSER_USER_AGENT,
-    "--dump-json",
-    "--no-warnings",
-    "--no-playlist",
-    url
-  ];
-
-  const output = await runYtDlp(args);
-  return parseYtDlpJson(output);
+function fetchXMetadata(url) {
+  return fetchGenericMetadata({ url, cookieValidatorFn: validateXCookies });
 }
 
 function toOriginalTwitterImageUrl(imageUrl) {
@@ -160,91 +134,24 @@ function hasVideoFormats(metadata) {
   });
 }
 
-async function runYtDlpVideoDownload(url, sourcePath, format) {
-  const outputBase = sourcePath.replace(/\.[^.]+$/, "");
-  const outputTemplate = `${outputBase}.%(ext)s`;
-  const candidatePaths = OUTPUT_EXTENSIONS.map((ext) => `${outputBase}.${ext}`);
-
-  cleanupFiles(candidatePaths);
-
-  const args = [
-    ...getCookieArgs(),
-    "--user-agent",
-    BROWSER_USER_AGENT,
-    "--no-warnings",
-    "--no-playlist",
-    "--format",
-    format,
-    "--merge-output-format",
-    "mp4",
-    "--output",
-    outputTemplate,
-    url
-  ];
-
-  await runYtDlp(args);
-
-  return candidatePaths.find((candidate) => hasUsableFile(candidate));
+function createXSourceVideo(url, sourcePath) {
+  return createGenericSourceVideo({
+    url,
+    sourcePath,
+    primaryFormat: PRIMARY_MERGE_FORMAT,
+    fallbackFormat: FALLBACK_MERGE_FORMAT,
+    cookieValidatorFn: validateXCookies,
+    platformLabel: "X"
+  });
 }
 
-async function createXSourceVideo(url, sourcePath) {
-  let mergedPath;
-
-  try {
-    mergedPath = await runYtDlpVideoDownload(url, sourcePath, PRIMARY_MERGE_FORMAT);
-  } catch (error) {
-    mergedPath = await runYtDlpVideoDownload(url, sourcePath, FALLBACK_MERGE_FORMAT);
-  }
-
-  if (!mergedPath) {
-    throw new Error("File unduhan video X kosong");
-  }
-
-  if (mergedPath !== sourcePath) {
-    fs.renameSync(mergedPath, sourcePath);
-  }
-}
-
-async function downloadXAudio(url) {
-  ensureCacheDir();
-
-  const token = getCacheToken(`x-audio:${url}`);
-  const outputPath = getCacheFilePath(token, "mp3");
-
-  if (hasUsableFile(outputPath)) {
-    return {
-      token,
-      path: outputPath
-    };
-  }
-
-  const outputBase = path.join(DOWNLOAD_CACHE_DIR, token);
-  const args = [
-    ...getCookieArgs(),
-    "--user-agent",
-    BROWSER_USER_AGENT,
-    "--no-warnings",
-    "--no-playlist",
-    "--extract-audio",
-    "--audio-format",
-    "mp3",
-    "--audio-quality",
-    "0",
-    "--output",
-    `${outputBase}.%(ext)s`,
-    url
-  ];
-
-  await runYtDlp(args);
-
-  if (!hasUsableFile(outputPath)) {
-    throw new Error("File audio X kosong");
-  }
-
-  return {
-    token,
-    path: outputPath
-  };
+function downloadXAudio(url) {
+  return downloadGenericAudio({
+    url,
+    cachePrefix: "x-audio",
+    cookieValidatorFn: validateXCookies,
+    platformLabel: "X"
+  });
 }
 
 async function fetchFromFxTwitter(tweetId) {
