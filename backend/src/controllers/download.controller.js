@@ -1,3 +1,4 @@
+const axios = require("axios");
 const { sanitizeUrl } = require("../utils/sanitizeUrl");
 const { downloadTikTok } = require("../services/tiktok.service");
 const { downloadInstagram } = require("../services/instagram.service");
@@ -5,6 +6,26 @@ const { downloadYouTube } = require("../services/youtube.service");
 const { downloadX } = require("../services/x.service");
 
 const DEFAULT_ERROR = "URL tidak valid atau konten tidak dapat diakses";
+
+function reportTelemetry(platform, status, format = "auto") {
+  try {
+    const pulseUrl = process.env.PULSE_COLLECT_URL || "http://127.0.0.1:3002/api/collect";
+    axios.post(pulseUrl, {
+      type: "event",
+      website_id: "void-downloader",
+      event_name: "download_media",
+      event_data: {
+        platform,
+        status,
+        format
+      }
+    }, {
+      timeout: 2000
+    }).catch(() => {});
+  } catch (err) {
+    // Fire-and-forget: abaikan kegagalan analitik agar tidak mengganggu download
+  }
+}
 
 function formatApiError(message) {
   const cleanMessage = message || DEFAULT_ERROR;
@@ -45,7 +66,9 @@ async function downloadContent(req, res) {
     }
 
     res.json(result);
+    reportTelemetry(sanitized.platform, "success", result?.type || "media");
   } catch (error) {
+    reportTelemetry(sanitized.platform, "failed", "unknown");
     const statusCode = error.statusCode || 502;
     res.status(statusCode).json({
       error: formatApiError(error.message)
