@@ -1,5 +1,18 @@
+# Cookies
 backend/cookies/*.txt
 !backend/cookies/.gitkeep
+
+# Environment files
+.env
+.env.*
+*.env
 backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Dependencies and build artifacts
 node_modules/
 dist/
+.DS_Store
+Thumbs.db

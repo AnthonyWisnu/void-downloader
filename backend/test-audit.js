@@ -113,6 +113,30 @@ async function runTests() {
     } catch {}
   }
 
+  // 4. Uji Error Sanitization
+  process.stdout.write("4. Pengujian Error Sanitization & Info Leakage Prevention...\n");
+  const { isUserSafeErrorMessage, formatUserSafeError } = require("./src/utils/errors");
+
+  const dangerousErrors = [
+    new Error("connect ECONNREFUSED 127.0.0.1:3002"),
+    new Error("ENOENT: no such file or directory, open 'C:\\laragon\\www\\backend\\.env'"),
+    new Error("TypeError: Cannot read properties of undefined (reading 'split') at /var/www/index.js:10"),
+    new Error("spawnSync yt-dlp ENOENT at child_process:100"),
+    new Error("Gagal membaca cookies di /home/anthony/MinjiBot/cookies/yt_cookies.txt")
+  ];
+
+  for (const err of dangerousErrors) {
+    assert.strictEqual(isUserSafeErrorMessage(err.message), false, `Harus mendeteksi leak teknis: ${err.message}`);
+    const safeMsg = formatUserSafeError(err, "ERR: Terjadi kesalahan pada server.");
+    assert.strictEqual(safeMsg, "ERR: Terjadi kesalahan pada server.");
+  }
+
+  const safeError = new Error("Video tidak ditemukan atau bersifat privat");
+  assert.strictEqual(isUserSafeErrorMessage(safeError.message), true);
+  assert.strictEqual(formatUserSafeError(safeError), "ERR: Video tidak ditemukan atau bersifat privat");
+
+  process.stdout.write("   -> Sukses: Filter error berhasil mencegah kebocoran informasi teknis.\n\n");
+
   process.stdout.write("=== SEMUA PENGUJIAN AUDIT BERHASIL LOLOS 100% ===\n");
 }
 

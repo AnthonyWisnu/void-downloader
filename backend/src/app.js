@@ -3,6 +3,8 @@ require("dotenv").config();
 const cors = require("cors");
 const express = require("express");
 const downloadRoutes = require("./routes/download.routes");
+const { globalApiRateLimiter } = require("./middlewares/rateLimiter");
+const { formatUserSafeError } = require("./utils/errors");
 const { validateAllCookiesOnStartup } = require("./services/cookies.service");
 const { cleanupCache } = require("./services/media-cache.service");
 
@@ -14,6 +16,9 @@ const allowedOrigins = new Set(frontendUrl
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean));
+
+// Hardening: Sembunyikan header identitas server
+app.disable("x-powered-by");
 
 // Trust first proxy (Nginx) agar rate limiter dan req.ip akurat
 app.set("trust proxy", 1);
@@ -32,6 +37,9 @@ app.use(
 );
 
 app.use(express.json({ limit: "1mb" }));
+
+// Rate limit global untuk seluruh rute /api
+app.use("/api", globalApiRateLimiter);
 app.use("/api", downloadRoutes);
 
 app.use("/api", (req, res) => {
@@ -39,10 +47,11 @@ app.use("/api", (req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  const message = error.message || "Server error";
-
-  res.status(500).json({
-    error: message.startsWith("ERR:") ? message : `ERR: ${message}`
+  process.stderr.write(`[unhandled error] ${error?.stack || error?.message || error}\n`);
+  const safeMessage = formatUserSafeError(error, "ERR: Terjadi kesalahan pada server. Silakan coba lagi nanti.");
+  const statusCode = error.statusCode || 500;
+  res.status(statusCode).json({
+    error: safeMessage
   });
 });
 
@@ -76,7 +85,6 @@ if (require.main === module) {
       clearInterval(cleanupTimer);
     }
     server.close(() => {
-      cleanupExpiredCache();
       process.exit(0);
     });
   }

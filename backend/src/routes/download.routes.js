@@ -3,14 +3,19 @@ const { downloadContent, healthCheck } = require("../controllers/download.contro
 const { downloadFile } = require("../controllers/file.controller");
 const { proxyMedia } = require("../controllers/media.controller");
 const { createBatchZip } = require("../controllers/batch.controller");
-const { downloadRateLimiter, mediaStreamRateLimiter } = require("../middlewares/rateLimiter");
+const {
+  downloadBurstLimiter,
+  downloadRateLimiter,
+  mediaStreamRateLimiter,
+  healthRateLimiter
+} = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
-router.get("/health", healthCheck);
+router.get("/health", healthRateLimiter, healthCheck);
 router.get("/file", mediaStreamRateLimiter, downloadFile);
 router.get("/media", mediaStreamRateLimiter, proxyMedia);
-router.post("/batch/zip", downloadRateLimiter, createBatchZip);
-router.post("/download", downloadRateLimiter, downloadContent);
+router.post("/batch/zip", downloadBurstLimiter, downloadRateLimiter, createBatchZip);
+router.post("/download", downloadBurstLimiter, downloadRateLimiter, downloadContent);
 
 module.exports = router;

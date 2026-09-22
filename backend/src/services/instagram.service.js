@@ -192,6 +192,7 @@ async function fetchYtDlpMetadata(url, cookiesPath) {
     "--dump-json",
     "--no-warnings",
     "--no-playlist",
+    "--",
     url
   ];
 
@@ -230,6 +231,7 @@ async function runYtDlpVideoDownload(url, cookiesPath, sourcePath, format) {
     "mp4",
     "--output",
     outputTemplate,
+    "--",
     url
   ];
 
@@ -542,7 +544,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
   let raw = null;
   if (cookiesPath && fs.existsSync(cookiesPath)) {
     try {
-      raw = await runGalleryDl(["--cookies", cookiesPath, ...baseArgs, cleanUrl]);
+      raw = await runGalleryDl(["--cookies", cookiesPath, ...baseArgs, "--", cleanUrl]);
       const testParsed = JSON.parse(raw);
       if (Array.isArray(testParsed) && testParsed.length === 1 && testParsed[0][0] === -1) {
         raw = null;
@@ -554,7 +556,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
 
   if (!raw) {
     try {
-      raw = await runGalleryDl([...baseArgs, cleanUrl]);
+      raw = await runGalleryDl([...baseArgs, "--", cleanUrl]);
     } catch {
       return null;
     }

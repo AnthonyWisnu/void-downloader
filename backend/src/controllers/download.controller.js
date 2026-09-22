@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { sanitizeUrl } = require("../utils/sanitizeUrl");
+const { formatUserSafeError } = require("../utils/errors");
 const { downloadTikTok } = require("../services/tiktok.service");
 const { downloadInstagram } = require("../services/instagram.service");
 const { downloadYouTube } = require("../services/youtube.service");
@@ -27,16 +28,6 @@ function reportTelemetry(platform, status, format = "auto") {
   }
 }
 
-function formatApiError(message) {
-  const cleanMessage = message || DEFAULT_ERROR;
-
-  if (cleanMessage.startsWith("ERR:")) {
-    return cleanMessage;
-  }
-
-  return `ERR: ${cleanMessage}`;
-}
-
 function healthCheck(req, res) {
   res.json({ status: "ok" });
 }
@@ -45,7 +36,7 @@ async function downloadContent(req, res) {
   const sanitized = sanitizeUrl(req.body?.url);
 
   if (!sanitized.ok) {
-    res.status(400).json({ error: formatApiError(sanitized.error) });
+    res.status(400).json({ error: formatUserSafeError(sanitized.error, "ERR: " + DEFAULT_ERROR) });
     return;
   }
 
@@ -61,7 +52,7 @@ async function downloadContent(req, res) {
     } else if (sanitized.platform === "x") {
       result = await downloadX(sanitized.url);
     } else {
-      res.status(400).json({ error: formatApiError() });
+      res.status(400).json({ error: "ERR: " + DEFAULT_ERROR });
       return;
     }
 
@@ -69,9 +60,10 @@ async function downloadContent(req, res) {
     reportTelemetry(sanitized.platform, "success", result?.type || "media");
   } catch (error) {
     reportTelemetry(sanitized.platform, "failed", "unknown");
+    process.stderr.write(`[download error] platform=${sanitized.platform} msg=${error?.message || error}\n`);
     const statusCode = error.statusCode || 502;
     res.status(statusCode).json({
-      error: formatApiError(error.message)
+      error: formatUserSafeError(error, "ERR: Konten tidak dapat diunduh. Pastikan link publik dan dapat diakses.")
     });
   }
 }

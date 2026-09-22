@@ -47,6 +47,7 @@ async function fetchGenericMetadata({ url, cookieValidatorFn, extraArgs = [] }) 
     "--no-warnings",
     "--no-playlist",
     ...extraArgs,
+    "--",
     url
   ];
 
@@ -82,6 +83,7 @@ async function runGenericYtDlpDownload({
     "--output",
     outputTemplate,
     ...extraArgs,
+    "--",
     url
   ];
 
@@ -157,6 +159,7 @@ async function downloadGenericAudio({
     "0",
     "--output",
     `${outputBase}.%(ext)s`,
+    "--",
     url
   ];
 
