@@ -41,6 +41,43 @@ const PINTEREST_HOSTS = new Set([
   "id.pinterest.com"
 ]);
 
+const FACEBOOK_HOSTS = new Set([
+  "facebook.com",
+  "www.facebook.com",
+  "m.facebook.com",
+  "web.facebook.com",
+  "fb.watch",
+  "fb.com",
+  "www.fb.com"
+]);
+
+const SOUNDCLOUD_HOSTS = new Set([
+  "soundcloud.com",
+  "www.soundcloud.com",
+  "m.soundcloud.com",
+  "on.soundcloud.com"
+]);
+
+const REDDIT_HOSTS = new Set([
+  "reddit.com",
+  "www.reddit.com",
+  "old.reddit.com",
+  "redd.it",
+  "v.redd.it"
+]);
+
+const DAILYMOTION_HOSTS = new Set([
+  "dailymotion.com",
+  "www.dailymotion.com",
+  "dai.ly"
+]);
+
+const VIMEO_HOSTS = new Set([
+  "vimeo.com",
+  "www.vimeo.com",
+  "player.vimeo.com"
+]);
+
 function getPlatform(hostname) {
   if (TIKTOK_HOSTS.has(hostname) || hostname.endsWith(".tiktok.com")) {
     return "tiktok";
@@ -66,6 +103,46 @@ function getPlatform(hostname) {
     hostname.endsWith(".pin.it")
   ) {
     return "pinterest";
+  }
+
+  if (
+    FACEBOOK_HOSTS.has(hostname) ||
+    hostname.endsWith(".facebook.com") ||
+    hostname === "fb.watch" ||
+    hostname.endsWith(".fb.watch") ||
+    hostname === "fb.com" ||
+    hostname.endsWith(".fb.com")
+  ) {
+    return "facebook";
+  }
+
+  if (SOUNDCLOUD_HOSTS.has(hostname) || hostname.endsWith(".soundcloud.com")) {
+    return "soundcloud";
+  }
+
+  if (
+    REDDIT_HOSTS.has(hostname) ||
+    hostname.endsWith(".reddit.com") ||
+    hostname === "redd.it" ||
+    hostname.endsWith(".redd.it")
+  ) {
+    return "reddit";
+  }
+
+  if (
+    DAILYMOTION_HOSTS.has(hostname) ||
+    hostname.endsWith(".dailymotion.com") ||
+    hostname === "dai.ly" ||
+    hostname.endsWith(".dai.ly")
+  ) {
+    return "dailymotion";
+  }
+
+  if (
+    VIMEO_HOSTS.has(hostname) ||
+    hostname.endsWith(".vimeo.com")
+  ) {
+    return "vimeo";
   }
 
   return null;

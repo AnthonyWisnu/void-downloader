@@ -155,6 +155,26 @@ async function runTests() {
     assert.strictEqual(sanitized.platform, "pinterest", `Platform harus terdeteksi sebagai pinterest: ${purl}`);
   }
 
+  // Uji Platform Baru: Facebook, SoundCloud, Reddit, Dailymotion, Vimeo
+  const newPlatformUrls = [
+    { url: "https://www.facebook.com/reel/1234567890", expected: "facebook" },
+    { url: "https://fb.watch/xyz123/", expected: "facebook" },
+    { url: "https://m.facebook.com/watch/?v=987654321", expected: "facebook" },
+    { url: "https://soundcloud.com/artist/track-name", expected: "soundcloud" },
+    { url: "https://on.soundcloud.com/abcde", expected: "soundcloud" },
+    { url: "https://www.reddit.com/r/funny/comments/xyz123/funny_video/", expected: "reddit" },
+    { url: "https://redd.it/xyz123", expected: "reddit" },
+    { url: "https://www.dailymotion.com/video/x8abcdef", expected: "dailymotion" },
+    { url: "https://dai.ly/x8abcdef", expected: "dailymotion" },
+    { url: "https://vimeo.com/123456789", expected: "vimeo" }
+  ];
+
+  for (const item of newPlatformUrls) {
+    const sanitized = sanitizeUrl(item.url);
+    assert.strictEqual(sanitized.ok, true, `URL harus valid: ${item.url}`);
+    assert.strictEqual(sanitized.platform, item.expected, `Platform harus terdeteksi sebagai ${item.expected}: ${item.url}`);
+  }
+
   assert.strictEqual(MAX_FILE_SIZE_MB, 400, "Batas maksimal file global harus 400 MB");
   assert.strictEqual(MAX_FILE_SIZE_BYTES, 400 * 1024 * 1024, "Batas byte file harus 400 * 1024 * 1024");
   assert.strictEqual(PLATFORM_LIMITS.TIKTOK.MAX_DURATION_SEC, 4200, "Batas durasi TikTok harus 70 menit (4.200s)");
@@ -164,6 +184,11 @@ async function runTests() {
   assert.strictEqual(PLATFORM_LIMITS.YOUTUBE.MAX_DURATION_SEC, 3600, "Batas durasi YouTube harus 1 jam (3.600s)");
   assert.strictEqual(PLATFORM_LIMITS.X.MAX_DURATION_SEC, 1800, "Batas durasi X (Twitter) harus 30 menit (1.800s)");
   assert.strictEqual(PLATFORM_LIMITS.X.MAX_MEDIA_ITEMS, 10, "Batas media item X (Twitter) harus 10");
+  assert.strictEqual(PLATFORM_LIMITS.FACEBOOK.MAX_DURATION_SEC, 3600, "Batas durasi Facebook harus 1 jam (3.600s)");
+  assert.strictEqual(PLATFORM_LIMITS.SOUNDCLOUD.MAX_DURATION_SEC, 7200, "Batas durasi SoundCloud harus 2 jam (7.200s)");
+  assert.strictEqual(PLATFORM_LIMITS.REDDIT.MAX_DURATION_SEC, 1800, "Batas durasi Reddit harus 30 menit (1.800s)");
+  assert.strictEqual(PLATFORM_LIMITS.DAILYMOTION.MAX_DURATION_SEC, 3600, "Batas durasi Dailymotion harus 1 jam (3.600s)");
+  assert.strictEqual(PLATFORM_LIMITS.VIMEO.MAX_DURATION_SEC, 3600, "Batas durasi Vimeo harus 1 jam (3.600s)");
 
   // Uji assertFileWithinSizeLimit
   const sizeTestDir = path.join(os.tmpdir(), `test-size-limit-${Date.now()}`);

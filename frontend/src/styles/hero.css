@@ -393,6 +393,41 @@
 }
 .channel-pin:hover .hero-channel-badge { color: #f87171; }
 
+.channel-fb::before { background-color: var(--brand-facebook); }
+.channel-fb:hover {
+  border-color: var(--brand-facebook);
+  box-shadow: 0 0 16px var(--brand-facebook-glow);
+}
+.channel-fb:hover .hero-channel-badge { color: #60a5fa; }
+
+.channel-sc::before { background-color: var(--brand-soundcloud); }
+.channel-sc:hover {
+  border-color: var(--brand-soundcloud);
+  box-shadow: 0 0 16px var(--brand-soundcloud-glow);
+}
+.channel-sc:hover .hero-channel-badge { color: #fb923c; }
+
+.channel-rd::before { background-color: var(--brand-reddit); }
+.channel-rd:hover {
+  border-color: var(--brand-reddit);
+  box-shadow: 0 0 16px var(--brand-reddit-glow);
+}
+.channel-rd:hover .hero-channel-badge { color: #f97316; }
+
+.channel-dm::before { background-color: var(--brand-dailymotion); }
+.channel-dm:hover {
+  border-color: var(--brand-dailymotion);
+  box-shadow: 0 0 16px var(--brand-dailymotion-glow);
+}
+.channel-dm:hover .hero-channel-badge { color: #38bdf8; }
+
+.channel-vm::before { background-color: var(--brand-vimeo); }
+.channel-vm:hover {
+  border-color: var(--brand-vimeo);
+  box-shadow: 0 0 16px var(--brand-vimeo-glow);
+}
+.channel-vm:hover .hero-channel-badge { color: #22d3ee; }
+
 @media (max-width: 640px) {
   .hero {
     padding: var(--space-md);

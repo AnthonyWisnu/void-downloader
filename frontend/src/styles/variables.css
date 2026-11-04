@@ -41,6 +41,26 @@
   --brand-pinterest-glow: rgba(230, 0, 35, 0.35);
   --brand-pinterest-bg: rgba(230, 0, 35, 0.08);
 
+  --brand-facebook: #1877f2;
+  --brand-facebook-glow: rgba(24, 119, 242, 0.35);
+  --brand-facebook-bg: rgba(24, 119, 242, 0.08);
+
+  --brand-soundcloud: #ff5500;
+  --brand-soundcloud-glow: rgba(255, 85, 0, 0.35);
+  --brand-soundcloud-bg: rgba(255, 85, 0, 0.08);
+
+  --brand-reddit: #ff4500;
+  --brand-reddit-glow: rgba(255, 69, 0, 0.35);
+  --brand-reddit-bg: rgba(255, 69, 0, 0.08);
+
+  --brand-dailymotion: #0066dc;
+  --brand-dailymotion-glow: rgba(0, 102, 220, 0.35);
+  --brand-dailymotion-bg: rgba(0, 102, 220, 0.08);
+
+  --brand-vimeo: #1ab7ea;
+  --brand-vimeo-glow: rgba(26, 183, 234, 0.35);
+  --brand-vimeo-bg: rgba(26, 183, 234, 0.08);
+
   /* Cyber Technical Neon Accents */
   --neon-emerald: #00ff88;
   --neon-emerald-glow: rgba(0, 255, 136, 0.3);

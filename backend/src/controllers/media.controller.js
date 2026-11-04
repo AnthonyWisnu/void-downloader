@@ -63,6 +63,26 @@ function getRequestHeaders(req, parsedUrl) {
     headers.Referer = "https://www.pinterest.com/";
   }
 
+  if (parsedUrl.hostname.includes("facebook") || parsedUrl.hostname.includes("fb.watch") || parsedUrl.hostname.includes("fbcdn")) {
+    headers.Referer = "https://www.facebook.com/";
+  }
+
+  if (parsedUrl.hostname.includes("soundcloud") || parsedUrl.hostname.includes("sndcdn")) {
+    headers.Referer = "https://soundcloud.com/";
+  }
+
+  if (parsedUrl.hostname.includes("reddit") || parsedUrl.hostname.includes("redd.it")) {
+    headers.Referer = "https://www.reddit.com/";
+  }
+
+  if (parsedUrl.hostname.includes("dailymotion") || parsedUrl.hostname.includes("dmcdn")) {
+    headers.Referer = "https://www.dailymotion.com/";
+  }
+
+  if (parsedUrl.hostname.includes("vimeo") || parsedUrl.hostname.includes("vimeocdn")) {
+    headers.Referer = "https://vimeo.com/";
+  }
+
   return headers;
 }
 

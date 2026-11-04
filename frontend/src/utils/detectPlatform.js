@@ -25,6 +25,26 @@ export function detectPlatform(url) {
     if (hostname.includes("pinterest.") || hostname.includes("pin.it")) {
       return "pinterest";
     }
+
+    if (hostname.includes("facebook.com") || hostname.includes("fb.watch") || hostname.includes("fb.com")) {
+      return "facebook";
+    }
+
+    if (hostname.includes("soundcloud.com")) {
+      return "soundcloud";
+    }
+
+    if (hostname.includes("reddit.com") || hostname.includes("redd.it")) {
+      return "reddit";
+    }
+
+    if (hostname.includes("dailymotion.com") || hostname.includes("dai.ly")) {
+      return "dailymotion";
+    }
+
+    if (hostname.includes("vimeo.com")) {
+      return "vimeo";
+    }
   } catch {
     return "unknown";
   }
@@ -61,6 +81,26 @@ export function platformLabel(platform, type) {
     return "PINTEREST";
   }
 
+  if (platform === "facebook") {
+    return "FACEBOOK";
+  }
+
+  if (platform === "soundcloud") {
+    return "SOUNDCLOUD";
+  }
+
+  if (platform === "reddit") {
+    return "REDDIT";
+  }
+
+  if (platform === "dailymotion") {
+    return "DAILYMOTION";
+  }
+
+  if (platform === "vimeo") {
+    return "VIMEO";
+  }
+
   return "UNKNOWN";
 }
 
@@ -69,7 +109,7 @@ export function typeLabel(type) {
     video: "VIDEO",
     shorts: "SHORTS",
     gif: "GIF",
-    audio: "AUDIO",
+    audio: "AUDIO MP3",
     slideshow: "SLIDESHOW",
     reels: "REELS",
     story: "STORY",

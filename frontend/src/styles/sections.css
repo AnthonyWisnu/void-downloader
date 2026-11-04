@@ -159,6 +159,71 @@
   background: rgba(230, 0, 35, 0.06);
 }
 
+/* Facebook Channel */
+.card-facebook::before { background: var(--brand-facebook); }
+.card-facebook:hover {
+  border-color: var(--brand-facebook);
+  box-shadow: 0 12px 32px var(--brand-facebook-glow);
+}
+.card-facebook .platform-card-scope { color: #60a5fa; }
+.card-facebook .platform-format-pill {
+  border-color: rgba(24, 119, 242, 0.3);
+  color: #60a5fa;
+  background: rgba(24, 119, 242, 0.06);
+}
+
+/* SoundCloud Channel */
+.card-soundcloud::before { background: var(--brand-soundcloud); }
+.card-soundcloud:hover {
+  border-color: var(--brand-soundcloud);
+  box-shadow: 0 12px 32px var(--brand-soundcloud-glow);
+}
+.card-soundcloud .platform-card-scope { color: #fb923c; }
+.card-soundcloud .platform-format-pill {
+  border-color: rgba(255, 85, 0, 0.3);
+  color: #fb923c;
+  background: rgba(255, 85, 0, 0.06);
+}
+
+/* Reddit Channel */
+.card-reddit::before { background: var(--brand-reddit); }
+.card-reddit:hover {
+  border-color: var(--brand-reddit);
+  box-shadow: 0 12px 32px var(--brand-reddit-glow);
+}
+.card-reddit .platform-card-scope { color: #f97316; }
+.card-reddit .platform-format-pill {
+  border-color: rgba(255, 69, 0, 0.3);
+  color: #f97316;
+  background: rgba(255, 69, 0, 0.06);
+}
+
+/* Dailymotion Channel */
+.card-dailymotion::before { background: var(--brand-dailymotion); }
+.card-dailymotion:hover {
+  border-color: var(--brand-dailymotion);
+  box-shadow: 0 12px 32px var(--brand-dailymotion-glow);
+}
+.card-dailymotion .platform-card-scope { color: #38bdf8; }
+.card-dailymotion .platform-format-pill {
+  border-color: rgba(0, 102, 220, 0.3);
+  color: #38bdf8;
+  background: rgba(0, 102, 220, 0.06);
+}
+
+/* Vimeo Channel */
+.card-vimeo::before { background: var(--brand-vimeo); }
+.card-vimeo:hover {
+  border-color: var(--brand-vimeo);
+  box-shadow: 0 12px 32px var(--brand-vimeo-glow);
+}
+.card-vimeo .platform-card-scope { color: #22d3ee; }
+.card-vimeo .platform-format-pill {
+  border-color: rgba(26, 183, 234, 0.3);
+  color: #22d3ee;
+  background: rgba(26, 183, 234, 0.06);
+}
+
 .platform-card-header {
   display: flex;
   align-items: center;

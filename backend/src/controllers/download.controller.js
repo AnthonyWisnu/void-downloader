@@ -6,6 +6,11 @@ const { downloadInstagram } = require("../services/instagram.service");
 const { downloadYouTube } = require("../services/youtube.service");
 const { downloadX } = require("../services/x.service");
 const { downloadPinterest } = require("../services/pinterest.service");
+const { downloadFacebook } = require("../services/facebook.service");
+const { downloadSoundCloud } = require("../services/soundcloud.service");
+const { downloadReddit } = require("../services/reddit.service");
+const { downloadDailymotion } = require("../services/dailymotion.service");
+const { downloadVimeo } = require("../services/vimeo.service");
 
 const DEFAULT_ERROR = "URL tidak valid atau konten tidak dapat diakses";
 
@@ -54,6 +59,16 @@ async function downloadContent(req, res) {
       result = await downloadX(sanitized.url);
     } else if (sanitized.platform === "pinterest") {
       result = await downloadPinterest(sanitized.url);
+    } else if (sanitized.platform === "facebook") {
+      result = await downloadFacebook(sanitized.url);
+    } else if (sanitized.platform === "soundcloud") {
+      result = await downloadSoundCloud(sanitized.url);
+    } else if (sanitized.platform === "reddit") {
+      result = await downloadReddit(sanitized.url);
+    } else if (sanitized.platform === "dailymotion") {
+      result = await downloadDailymotion(sanitized.url);
+    } else if (sanitized.platform === "vimeo") {
+      result = await downloadVimeo(sanitized.url);
     } else {
       res.status(400).json({ error: "ERR: " + DEFAULT_ERROR });
       return;

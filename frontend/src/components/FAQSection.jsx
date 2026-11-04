@@ -5,12 +5,17 @@ const faqs = [
   {
     question: "Which platforms are supported by VOID?",
     answer:
-      "VOID natively supports YouTube (Videos, Shorts, and Audio extraction), TikTok (Watermark-free videos and photo carousels), Instagram (Reels, multi-image posts, and active stories), X / Twitter (Videos, GIFs, original photos, and audio), and Pinterest (High-res uncompressed photos and pin videos)."
+      "VOID natively supports 10 media platforms: YouTube, TikTok, Instagram, X (Twitter), Pinterest, Facebook (Reels & Watch), SoundCloud (HQ Audio & Podcasts), Reddit (Audio+Video synced without VPN), Dailymotion, and Vimeo."
+  },
+  {
+    question: "Can I convert video to MP3 audio directly in VOID?",
+    answer:
+      "Yes! VOID features a built-in Video to MP3 converter. For supported video streams (YouTube, Facebook, Reddit, TikTok, Dailymotion, Vimeo, Twitter), the system extracts the audio track into a 192 kbps MP3 file complete with an inline audio preview player."
   },
   {
     question: "What are the media size and duration limits in VOID?",
     answer:
-      "All platforms support file downloads up to 400 MB. Duration limits: YouTube up to 1 Hour (Smart Adaptive 720p 60fps/30fps & 192 kbps MP3), TikTok up to 70 Minutes & 25 photo slides, Instagram up to 30 Minutes & 15 carousel items, X (Twitter) up to 30 Minutes & 10 media items, and Pinterest original HD photos and pin videos."
+      "All platforms support file downloads up to 400 MB. Duration limits: YouTube up to 1 Hour, TikTok up to 70 Minutes & 25 photo slides, Instagram up to 30 Minutes & 15 carousel items, X (Twitter) up to 30 Minutes, Facebook up to 1 Hour, SoundCloud up to 2 Hours, Reddit up to 30 Minutes, Dailymotion up to 1 Hour, and Vimeo up to 1 Hour."
   },
   {
     question: "Does VOID require accounts, authentication, or extensions?",
@@ -18,14 +23,9 @@ const faqs = [
       "No. VOID is completely clientless and requires no user account, registration, payment, or browser extension."
   },
   {
-    question: "How does VOID handle cookies and sensitive extractions?",
+    question: "Why do videos offer audio extraction separately?",
     answer:
-      "Session cookies for platforms like Instagram and YouTube are maintained entirely server-side in secure Netscape format. No credentials or authentication tokens are ever sent to client browsers."
-  },
-  {
-    question: "Why do some videos offer audio extraction separately?",
-    answer:
-      "For platforms like YouTube, TikTok, and X, the extractor provides a direct MP3 stream alongside video containers, allowing you to download clean audio tracks independently."
+      "Alongside video containers, the extractor provides a direct MP3 audio stream, allowing you to quickly save songs, background music, or dialogue tracks independently."
   },
   {
     question: "Why might extraction fail on certain links?",

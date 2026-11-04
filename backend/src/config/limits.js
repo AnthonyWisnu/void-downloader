@@ -24,6 +24,21 @@ const PLATFORM_LIMITS = {
   },
   PINTEREST: {
     MAX_FILE_SIZE_MB
+  },
+  FACEBOOK: {
+    MAX_DURATION_SEC: 3600 // 1 jam
+  },
+  SOUNDCLOUD: {
+    MAX_DURATION_SEC: 7200 // 2 jam (set / mix)
+  },
+  REDDIT: {
+    MAX_DURATION_SEC: 1800 // 30 menit
+  },
+  DAILYMOTION: {
+    MAX_DURATION_SEC: 3600 // 1 jam
+  },
+  VIMEO: {
+    MAX_DURATION_SEC: 3600 // 1 jam
   }
 };
 
