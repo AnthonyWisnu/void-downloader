@@ -715,6 +715,27 @@
   font-size: var(--text-label);
 }
 
+/* iOS Download UX Hint --------------------------------------------------- */
+.ios-download-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  letter-spacing: var(--tracking-mono);
+}
+
+.ios-download-hint svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--platform-color);
+}
+
 /* Responsive Overrides ---------------------------------------------------- */
 @media (max-width: 860px) {
   .media-result-grid.layout-landscape,

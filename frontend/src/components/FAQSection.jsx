@@ -18,6 +18,11 @@ const faqs = [
       "All platforms support file downloads up to 400 MB. Duration limits: YouTube up to 1 Hour, TikTok up to 70 Minutes & 25 photo slides, Instagram up to 30 Minutes & 15 carousel items, X (Twitter) up to 30 Minutes, Facebook up to 1 Hour, SoundCloud up to 2 Hours, Reddit up to 30 Minutes, Dailymotion up to 1 Hour, and Vimeo up to 1 Hour."
   },
   {
+    question: "Are downloaded videos compatible with iPhone, Android, and Desktop?",
+    answer:
+      "Yes. All videos are normalized to H.264 FastStart MP4 with universal AAC audio, making them fully playable across iOS Safari, Android Chrome, and all desktop systems. On iPhone, Safari saves downloads to the Files app; tap Share and select 'Save Video' to add the file directly into your Photos gallery."
+  },
+  {
     question: "Does VOID require accounts, authentication, or extensions?",
     answer:
       "No. VOID is completely clientless and requires no user account, registration, payment, or browser extension."

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Volume2, VolumeX, Archive } from "lucide-react";
+import { Volume2, VolumeX, Archive, Smartphone } from "lucide-react";
 import DownloadOptionRow from "./DownloadOptionRow";
 import { downloadAllAsZip } from "../utils/mediaBatch";
 
@@ -118,6 +118,13 @@ function DownloadOptions({ adapted }) {
           )}
         </div>
       ) : null}
+
+      <div className="ios-download-hint mono" role="note">
+        <Smartphone size={13} strokeWidth={2.5} aria-hidden="true" />
+        <span>
+          IOS / IPHONE TIP: To save downloaded video directly into your Photos app, open the file in the Files app, tap Share, and select &quot;Save Video&quot;.
+        </span>
+      </div>
     </div>
   );
 }
