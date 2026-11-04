@@ -4,10 +4,10 @@ const steps = [
   {
     number: "01",
     label: "INGEST",
-    title: "ACQUIRE SOURCE LINK",
+    title: "ACQUIRE SOURCE LINK / VIDEO",
     icon: Copy,
     colorClass: "step-cyan",
-    text: "Copy any public video, reel, shorts, post, or tweet URL from YouTube, TikTok, Instagram, or X to your clipboard."
+    text: "Copy any public media link from YouTube, TikTok, Instagram, Facebook, X, Pinterest, SoundCloud, Reddit, Dailymotion, Vimeo, or upload a local video."
   },
   {
     number: "02",
@@ -15,7 +15,7 @@ const steps = [
     title: "EXECUTE STREAM ANALYSIS",
     icon: Search,
     colorClass: "step-purple",
-    text: "Paste the URL into the command deck. The resolver validates the host and extracts live audio-video payload streams."
+    text: "Paste the URL or select your video file. The multi-platform resolver validates the payload and extracts live audio-video streams."
   },
   {
     number: "03",

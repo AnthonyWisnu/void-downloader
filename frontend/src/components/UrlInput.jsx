@@ -1,12 +1,29 @@
 import { ArrowUpRight, Clipboard, CheckCircle2, ShieldCheck, Music, Video, Image as ImageIcon } from "lucide-react";
-import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
+import {
+  YouTubeLogo,
+  TikTokLogo,
+  InstagramLogo,
+  XLogo,
+  PinterestLogo,
+  FacebookLogo,
+  SoundCloudLogo,
+  RedditLogo,
+  DailymotionLogo,
+  VimeoLogo
+} from "./BrandLogos";
 import { platformLabel } from "../utils/detectPlatform";
 
 const PLATFORMS = [
   { id: "youtube", label: "YouTube", renderLogo: (size) => <YouTubeLogo size={size} /> },
   { id: "tiktok", label: "TikTok", renderLogo: (size) => <TikTokLogo size={size} /> },
   { id: "instagram", label: "Instagram", renderLogo: (size) => <InstagramLogo size={size} /> },
-  { id: "x", label: "X (Twitter)", renderLogo: (size) => <XLogo size={size} /> }
+  { id: "x", label: "X (Twitter)", renderLogo: (size) => <XLogo size={size} /> },
+  { id: "pinterest", label: "Pinterest", renderLogo: (size) => <PinterestLogo size={size} /> },
+  { id: "facebook", label: "Facebook", renderLogo: (size) => <FacebookLogo size={size} /> },
+  { id: "soundcloud", label: "SoundCloud", renderLogo: (size) => <SoundCloudLogo size={size} /> },
+  { id: "reddit", label: "Reddit", renderLogo: (size) => <RedditLogo size={size} /> },
+  { id: "dailymotion", label: "Dailymotion", renderLogo: (size) => <DailymotionLogo size={size} /> },
+  { id: "vimeo", label: "Vimeo", renderLogo: (size) => <VimeoLogo size={size} /> }
 ];
 
 function UrlInput({
@@ -74,7 +91,7 @@ function UrlInput({
           className="url-field mono"
           type="url"
           value={value}
-          placeholder="ENTER OR PASTE PUBLIC MEDIA URL (YOUTUBE, TIKTOK, INSTAGRAM, X)..."
+          placeholder="ENTER OR PASTE MEDIA URL (YOUTUBE, TIKTOK, IG, FB, SOUNDCLOUD, REDDIT, X, ETC)..."
           autoComplete="off"
           spellCheck="false"
           aria-invalid={hasError}

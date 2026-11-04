@@ -165,3 +165,45 @@
   --platform-border: var(--brand-pinterest);
   --platform-bg: var(--brand-pinterest-bg);
 }
+
+[data-platform="facebook"] {
+  --platform-color: var(--brand-facebook);
+  --platform-glow: var(--brand-facebook-glow);
+  --platform-border: var(--brand-facebook);
+  --platform-bg: var(--brand-facebook-bg);
+}
+
+[data-platform="soundcloud"] {
+  --platform-color: var(--brand-soundcloud);
+  --platform-glow: var(--brand-soundcloud-glow);
+  --platform-border: var(--brand-soundcloud);
+  --platform-bg: var(--brand-soundcloud-bg);
+}
+
+[data-platform="reddit"] {
+  --platform-color: var(--brand-reddit);
+  --platform-glow: var(--brand-reddit-glow);
+  --platform-border: var(--brand-reddit);
+  --platform-bg: var(--brand-reddit-bg);
+}
+
+[data-platform="dailymotion"] {
+  --platform-color: var(--brand-dailymotion);
+  --platform-glow: var(--brand-dailymotion-glow);
+  --platform-border: var(--brand-dailymotion);
+  --platform-bg: var(--brand-dailymotion-bg);
+}
+
+[data-platform="vimeo"] {
+  --platform-color: var(--brand-vimeo);
+  --platform-glow: var(--brand-vimeo-glow);
+  --platform-border: var(--brand-vimeo);
+  --platform-bg: var(--brand-vimeo-bg);
+}
+
+[data-platform="converter"] {
+  --platform-color: #00ff88;
+  --platform-glow: rgba(0, 255, 136, 0.4);
+  --platform-border: #00ff88;
+  --platform-bg: rgba(0, 255, 136, 0.08);
+}

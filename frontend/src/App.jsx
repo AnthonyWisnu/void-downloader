@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navbar from "./components/Navbar";
 import DownloaderPanel from "./components/DownloaderPanel";
 import FAQSection from "./components/FAQSection";
@@ -10,11 +11,15 @@ import ResultSection from "./components/ResultSection";
 import useDownloader from "./hooks/useDownloader";
 
 function App() {
+  const [activeTab, setActiveTab] = useState("url");
   const downloader = useDownloader();
+
   const activePlatform =
-    downloader.detectedPlatform !== "unknown"
-      ? downloader.detectedPlatform
-      : downloader.result?.platform || "default";
+    activeTab === "converter"
+      ? "converter"
+      : downloader.detectedPlatform !== "unknown"
+        ? downloader.detectedPlatform
+        : downloader.result?.platform || "default";
 
   return (
     <div className="app" data-platform={activePlatform}>
@@ -22,6 +27,8 @@ function App() {
       <HeroSection />
 
       <DownloaderPanel
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         url={downloader.url}
         error={downloader.error}
         isLoading={downloader.isLoading}
@@ -31,7 +38,7 @@ function App() {
         onSubmit={downloader.submit}
       />
 
-      {!downloader.isLoading && downloader.result ? (
+      {activeTab === "url" && !downloader.isLoading && downloader.result ? (
         <ResultSection result={downloader.result} onReset={downloader.reset} />
       ) : null}
 

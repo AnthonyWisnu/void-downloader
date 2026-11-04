@@ -51,6 +51,24 @@ body::before {
   will-change: transform;
 }
 
+/* Reactive Dynamic Brand Aurora Aura */
+.app {
+  min-height: 100vh;
+  position: relative;
+}
+
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 50% 20%, var(--platform-glow) 0%, transparent 65%);
+  opacity: 0.5;
+  transition: background-image 0.35s ease, opacity 0.35s ease;
+  transform: translateZ(0);
+}
+
 h1,
 h2,
 h3,
