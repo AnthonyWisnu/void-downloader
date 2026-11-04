@@ -9,6 +9,7 @@
   padding: var(--space-xl) var(--space-md);
   border-bottom: var(--border);
   background-color: var(--bg);
+  contain: content;
 }
 
 .section-inner {

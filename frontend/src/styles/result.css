@@ -34,8 +34,6 @@
 .media-result-card {
   width: 100%;
   background-color: var(--surface-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-color-light);
   display: flex;
   flex-direction: column;

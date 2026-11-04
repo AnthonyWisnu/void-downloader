@@ -44,8 +44,6 @@
 .downloader-panel {
   width: 100%;
   background-color: var(--surface-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-color-light);
   padding: var(--space-lg);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);

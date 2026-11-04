@@ -71,8 +71,6 @@
   padding: var(--space-md);
   border: 1px solid var(--border-color-light);
   background-color: var(--surface-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
@@ -254,8 +252,6 @@
   padding: var(--space-md);
   border: 1px solid var(--border-color-light);
   background-color: var(--surface-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
@@ -395,6 +391,8 @@
   background-color: var(--neon-purple);
   box-shadow: 0 0 8px var(--neon-purple-glow);
   animation: wave 1.2s infinite ease-in-out alternate;
+  transform-origin: bottom;
+  will-change: transform;
 }
 
 .bar-1 { height: 35%; animation-delay: 0.1s; }
@@ -503,8 +501,6 @@
   padding: var(--space-md);
   border: 1px solid var(--border-color-light);
   background-color: var(--surface-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   transition: all var(--transition);
   position: relative;
 }
@@ -610,8 +606,6 @@
   width: 100%;
   border: 1px solid var(--border-color-light);
   background-color: var(--surface-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 
 .faq-item {

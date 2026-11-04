@@ -9,11 +9,9 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  border-radius: var(--radius);
 }
 
 html {
-  scroll-behavior: smooth;
   background-color: var(--bg);
   color: var(--text-primary);
 }
@@ -21,24 +19,36 @@ html {
 body {
   margin: 0;
   background-color: var(--bg);
-  /* Ambient Multi-Brand Aurora Mesh + Subtle 36px Cyber Grid */
-  background-image:
-    radial-gradient(circle at 10% 12%, rgba(255, 0, 51, 0.09) 0%, transparent 45%),
-    radial-gradient(circle at 90% 14%, rgba(0, 242, 254, 0.09) 0%, transparent 45%),
-    radial-gradient(circle at 15% 60%, rgba(225, 48, 108, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 85% 70%, rgba(29, 155, 240, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 35%, rgba(0, 255, 136, 0.05) 0%, transparent 55%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
-  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: var(--text-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizeSpeed;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Hardware-Accelerated Ambient Multi-Brand Aurora Mesh Canvas
+   Using fixed pseudo-element instead of background-attachment: fixed
+   eliminates full-screen repaint on every scroll frame */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 10% 12%, rgba(255, 0, 51, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 90% 14%, rgba(0, 242, 254, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 15% 60%, rgba(225, 48, 108, 0.07) 0%, transparent 50%),
+    radial-gradient(circle at 85% 70%, rgba(29, 155, 240, 0.07) 0%, transparent 50%),
+    radial-gradient(circle at 50% 35%, rgba(0, 255, 136, 0.04) 0%, transparent 55%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 h1,
@@ -72,12 +82,10 @@ textarea,
 select {
   font: inherit;
   color: inherit;
-  border-radius: var(--radius);
 }
 
 button {
   cursor: pointer;
-  border-radius: var(--radius);
 }
 
 button:disabled {
