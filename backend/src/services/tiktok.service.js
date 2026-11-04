@@ -3,6 +3,7 @@ const { downloadUrlToFile, getOrCreateNormalizedVideo } = require("./video-cache
 const { downloadGenericAudio } = require("./engine-base.service");
 const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
+const { PLATFORM_LIMITS } = require("../config/limits");
 
 function getDownloader() {
   const tiktokApi = require("@tobyg74/tiktok-api-dl");
@@ -86,8 +87,6 @@ async function createNormalizedVideoDownload(videoUrl, label, filename = "") {
       previewUrl: `/api/file?token=${videoFile.token}`
     };
   } catch (error) {
-    logVideoNormalizeFallback(error, videoUrl);
-
     return {
       download: {
         label: `${label} Fallback External`,
@@ -129,6 +128,11 @@ async function collectDownloads(result, sourceUrl) {
   const payload = result.result || result.data || result;
   const downloads = [];
   let previewUrl = "";
+
+  const duration = Number(payload.duration || payload.video?.duration || 0);
+  if (duration > PLATFORM_LIMITS.TIKTOK.MAX_DURATION_SEC) {
+    throw createServiceError("Durasi video TikTok melebihi batas maksimal 70 menit", 400);
+  }
 
   const author = firstString(
     payload.author?.unique_id,
@@ -239,25 +243,23 @@ async function collectDownloads(result, sourceUrl) {
       });
 
       downloads.push({
-        label: "Audio Only",
+        label: "Audio Only (BGM MP3)",
         url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
         format: "mp3",
         filename: audioFilename
       });
-    } catch (error) {
-      logAudioConvertError(error, audioUrl);
-
+    } catch {
       try {
         const audioFile = await downloadAudioWithYtDlp(sourceUrl);
 
         downloads.push({
-          label: "Audio Only",
+          label: "Audio Only (BGM MP3)",
           url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
           format: "mp3",
           filename: audioFilename
         });
-      } catch (fallbackError) {
-        logAudioFallbackError(fallbackError);
+      } catch {
+        // fallback ignored
       }
     }
   } else if (videoUrl || watermarkUrl) {
@@ -265,19 +267,20 @@ async function collectDownloads(result, sourceUrl) {
       const audioFile = await downloadAudioWithYtDlp(sourceUrl);
 
       downloads.push({
-        label: "Audio Only",
+        label: "Audio Only (BGM MP3)",
         url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
         format: "mp3",
         filename: audioFilename
       });
-    } catch (error) {
-      logAudioFallbackError(error);
+    } catch {
+      // fallback ignored
     }
   }
 
-  const images = payload.images || payload.image_post?.images || payload.imagePost?.images || [];
+  const rawImages = payload.images || payload.image_post?.images || payload.imagePost?.images || [];
+  const images = Array.isArray(rawImages) ? rawImages.slice(0, PLATFORM_LIMITS.TIKTOK.MAX_SLIDES) : [];
 
-  if (Array.isArray(images)) {
+  if (images.length > 0) {
     images.forEach((imageUrl, index) => {
       if (typeof imageUrl === "string" && imageUrl.length > 0) {
         const slideFilename = generateMediaFilename({

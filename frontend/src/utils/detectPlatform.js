@@ -21,6 +21,10 @@ export function detectPlatform(url) {
     if (hostname.includes("x.com") || hostname.includes("twitter.com")) {
       return "x";
     }
+
+    if (hostname.includes("pinterest.") || hostname.includes("pin.it")) {
+      return "pinterest";
+    }
   } catch {
     return "unknown";
   }
@@ -51,6 +55,10 @@ export function platformLabel(platform, type) {
 
   if (platform === "x") {
     return "X (TWITTER)";
+  }
+
+  if (platform === "pinterest") {
+    return "PINTEREST";
   }
 
   return "UNKNOWN";

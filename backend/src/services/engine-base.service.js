@@ -1,12 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 const { runYtDlp, parseYtDlpJson } = require("../utils/execTool");
+const { MAX_FILE_SIZE_MB } = require("../config/limits");
 const {
   DOWNLOAD_CACHE_DIR,
   ensureCacheDir,
   getCacheToken,
   getCacheFilePath,
   hasUsableFile,
+  assertFileWithinSizeLimit,
   cleanupFiles
 } = require("./media-cache.service");
 
@@ -76,6 +78,8 @@ async function runGenericYtDlpDownload({
     BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
+    "--max-filesize",
+    `${MAX_FILE_SIZE_MB}M`,
     "--format",
     format,
     "--merge-output-format",
@@ -89,7 +93,12 @@ async function runGenericYtDlpDownload({
 
   await runYtDlp(args, { heavy: true });
 
-  return candidatePaths.find((candidate) => hasUsableFile(candidate));
+  const foundPath = candidatePaths.find((candidate) => hasUsableFile(candidate));
+  if (foundPath) {
+    assertFileWithinSizeLimit(foundPath);
+  }
+
+  return foundPath;
 }
 
 async function createGenericSourceVideo({
@@ -119,7 +128,7 @@ async function createGenericSourceVideo({
   }
 
   if (!mergedPath) {
-    throw new Error(`File unduhan video ${platformLabel} kosong`);
+    throw new Error(`File unduhan video ${platformLabel} kosong atau melebihi batas`);
   }
 
   if (mergedPath !== sourcePath) {
@@ -152,6 +161,8 @@ async function downloadGenericAudio({
     BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
+    "--max-filesize",
+    `${MAX_FILE_SIZE_MB}M`,
     "--extract-audio",
     "--audio-format",
     "mp3",
@@ -166,8 +177,10 @@ async function downloadGenericAudio({
   await runYtDlp(args, { heavy: true });
 
   if (!hasUsableFile(outputPath)) {
-    throw new Error(`File audio ${platformLabel} kosong`);
+    throw new Error(`File audio ${platformLabel} kosong atau melebihi batas`);
   }
+
+  assertFileWithinSizeLimit(outputPath);
 
   return { token, path: outputPath };
 }

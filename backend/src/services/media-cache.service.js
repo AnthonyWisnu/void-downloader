@@ -6,11 +6,12 @@ const { pipeline } = require("stream/promises");
 const axios = require("axios");
 
 const { getSafeAxiosAgents } = require("../utils/safeRequest");
+const { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } = require("../config/limits");
 
 const DOWNLOAD_CACHE_DIR = path.join(os.tmpdir(), "void-dl-cache");
 const DOWNLOAD_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
-const MAX_CACHE_SIZE_BYTES = parseInt(process.env.MAX_CACHE_SIZE_BYTES || "3221225472", 10); // 3 GB
-const TARGET_CACHE_SIZE_BYTES = Math.floor(MAX_CACHE_SIZE_BYTES * 0.7); // 2.1 GB
+const MAX_CACHE_SIZE_BYTES = parseInt(process.env.MAX_CACHE_SIZE_BYTES || "5368709120", 10); // 5 GB
+const TARGET_CACHE_SIZE_BYTES = Math.floor(MAX_CACHE_SIZE_BYTES * 0.7); // 3.5 GB
 const TOKEN_PATTERN = /^[a-f0-9]{32}$/i;
 
 function ensureCacheDir(dir = DOWNLOAD_CACHE_DIR) {
@@ -31,6 +32,17 @@ function hasUsableFile(filePath) {
     return fs.existsSync(filePath) && fs.statSync(filePath).size > 0;
   } catch {
     return false;
+  }
+}
+
+function assertFileWithinSizeLimit(filePath, maxBytes = MAX_FILE_SIZE_BYTES) {
+  if (!fs.existsSync(filePath)) return;
+  const stat = fs.statSync(filePath);
+  if (stat.size > maxBytes) {
+    cleanupFiles([filePath]);
+    const err = new Error(`ERR: Ukuran file melebihi batas maksimal ${MAX_FILE_SIZE_MB} MB`);
+    err.statusCode = 400;
+    throw err;
   }
 }
 
@@ -66,6 +78,7 @@ async function downloadUrlToFile(url, outputPath, headers = {}) {
   });
 
   await pipeline(response.data, fs.createWriteStream(outputPath));
+  assertFileWithinSizeLimit(outputPath);
   cleanupCacheLRU();
 }
 
@@ -161,6 +174,7 @@ module.exports = {
   getCacheToken,
   getCacheFilePath,
   hasUsableFile,
+  assertFileWithinSizeLimit,
   cleanupFiles,
   downloadUrlToFile,
   cleanupExpiredCache,

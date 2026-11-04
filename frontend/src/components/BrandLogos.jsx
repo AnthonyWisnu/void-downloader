@@ -113,11 +113,31 @@ export function XLogo({ size = 24, className = "" }) {
   );
 }
 
+export function PinterestLogo({ size = 24, className = "" }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-label="Pinterest"
+    >
+      <rect width="24" height="24" rx="5" fill="#E60023" />
+      <path
+        d="M12 2C6.477 2 2 6.477 2 12c0 4.237 2.636 7.855 6.356 9.312-.088-.791-.167-2.004.035-2.868.182-.781 1.173-4.971 1.173-4.971s-.299-.599-.299-1.485c0-1.39.806-2.428 1.809-2.428.853 0 1.265.641 1.265 1.408 0 .858-.546 2.14-.828 3.329-.236.995.499 1.808 1.481 1.808 1.778 0 3.143-1.874 3.143-4.579 0-2.394-1.72-4.068-4.177-4.068-2.845 0-4.515 2.134-4.515 4.339 0 .859.331 1.782.744 2.282a.3.3 0 0 1 .069.288l-.278 1.133c-.044.183-.145.223-.335.134-1.249-.582-2.03-2.408-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.189 6.22-1.013 0-1.966-.526-2.292-1.148l-.623 2.378c-.226.869-.835 1.958-1.243 2.622C9.642 21.843 10.8 22 12 22c5.523 0 10-4.477 10-10 0-5.523-4.477-10-10-10z"
+        fill="#FFFFFF"
+      />
+    </svg>
+  );
+}
+
 export function PlatformLogo({ platform, size = 24, className = "" }) {
   const p = String(platform || "").toLowerCase();
   if (p === "youtube") return <YouTubeLogo size={size} className={className} />;
   if (p === "tiktok") return <TikTokLogo size={size} className={className} />;
   if (p === "instagram") return <InstagramLogo size={size} className={className} />;
   if (p === "x" || p === "twitter") return <XLogo size={size} className={className} />;
+  if (p === "pinterest") return <PinterestLogo size={size} className={className} />;
   return null;
 }

@@ -9,6 +9,8 @@ const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const { runYtDlp, runGalleryDl, parseYtDlpJson } = require("../utils/execTool");
 const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
+const { PLATFORM_LIMITS } = require("../config/limits");
+const { assertFileWithinSizeLimit } = require("./media-cache.service");
 
 const {
   BROWSER_USER_AGENT,
@@ -44,6 +46,9 @@ function logAudioConvertError(error, audioUrl) {
 
 function normalizeInstagramError(error) {
   const normalized = getRawError(error).toLowerCase();
+  if (normalized.includes("file is larger than max-filesize") || normalized.includes("larger than max-filesize")) {
+    return createServiceError(`Ukuran video melebihi batas maksimal ${PLATFORM_LIMITS.MAX_FILE_SIZE_MB} MB`, 400);
+  }
 
   if (normalized.includes("http error 404")) {
     return createServiceError("Konten tidak ditemukan atau sudah dihapus", 404);
@@ -74,7 +79,7 @@ function isHttpUrl(value) {
 
 function getItems(metadata) {
   if (metadata?._type === "playlist" && Array.isArray(metadata.entries)) {
-    return metadata.entries.filter(Boolean);
+    return metadata.entries.filter(Boolean).slice(0, PLATFORM_LIMITS.INSTAGRAM.MAX_SLIDES);
   }
 
   return [metadata].filter(Boolean);
@@ -225,6 +230,8 @@ async function runYtDlpVideoDownload(url, cookiesPath, sourcePath, format) {
     BROWSER_USER_AGENT,
     "--no-warnings",
     "--no-playlist",
+    "--max-filesize",
+    `${PLATFORM_LIMITS.MAX_FILE_SIZE_MB}M`,
     "--format",
     format,
     "--merge-output-format",
@@ -610,7 +617,7 @@ async function fetchIgViaGalleryDl(url, cookiesPath) {
     const author = postMeta?.username || postMeta?.owner_username || postMeta?.author?.name || postMeta?.author || mediaItems[0]?.meta?.username || "";
     const thumbnail = mediaItems[0]?.url || null;
 
-    const downloads = mediaItems.map((item, index) => {
+    const downloads = mediaItems.slice(0, PLATFORM_LIMITS.INSTAGRAM.MAX_SLIDES).map((item, index) => {
       const filename = generateMediaFilename({
         platform: "instagram",
         author,
@@ -716,7 +723,7 @@ async function fetchIgPhoto(url, cookiesPath) {
 
   const author = result.author || "";
   const caption = result.caption || "Instagram content";
-  const downloads = result.items.map((item, index) => {
+  const downloads = result.items.slice(0, PLATFORM_LIMITS.INSTAGRAM.MAX_SLIDES).map((item, index) => {
     const filename = generateMediaFilename({
       platform: "instagram",
       author,
@@ -758,6 +765,10 @@ async function downloadInstagram(url) {
 
     if (downloads.length === 0) {
       throw new Error("No video formats found");
+    }
+
+    if (metadata?.duration && Number(metadata.duration) > PLATFORM_LIMITS.INSTAGRAM.MAX_DURATION_SEC) {
+      throw createServiceError("Durasi video Instagram melebihi batas maksimal 30 menit", 400);
     }
 
     const author = metadata.uploader || metadata.uploader_id || metadata.channel || "";

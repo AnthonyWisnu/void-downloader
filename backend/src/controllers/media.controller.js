@@ -55,6 +55,14 @@ function getRequestHeaders(req, parsedUrl) {
     headers.Referer = "https://x.com/";
   }
 
+  if (
+    parsedUrl.hostname.includes("pinterest") ||
+    parsedUrl.hostname.includes("pinimg.com") ||
+    parsedUrl.hostname.includes("pin.it")
+  ) {
+    headers.Referer = "https://www.pinterest.com/";
+  }
+
   return headers;
 }
 

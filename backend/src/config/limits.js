@@ -1,0 +1,35 @@
+const BYTES_PER_MB = 1024 * 1024;
+const MAX_FILE_SIZE_MB = parseInt(process.env.MAX_DOWNLOAD_FILE_MB || "400", 10);
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * BYTES_PER_MB;
+
+const PLATFORM_LIMITS = {
+  BYTES_PER_MB,
+  MAX_FILE_SIZE_MB,
+  MAX_FILE_SIZE_BYTES,
+  TIKTOK: {
+    MAX_DURATION_SEC: 4200, // 70 menit (1 jam 10 menit)
+    MAX_SLIDES: 25
+  },
+  INSTAGRAM: {
+    MAX_DURATION_SEC: 1800, // 30 menit
+    MAX_SLIDES: 15
+  },
+  YOUTUBE: {
+    MAX_DURATION_SEC: 3600, // 1 jam
+    MAX_AUDIO_DURATION_SEC: 3600 // 1 jam
+  },
+  X: {
+    MAX_DURATION_SEC: 1800, // 30 menit
+    MAX_MEDIA_ITEMS: 10
+  },
+  PINTEREST: {
+    MAX_FILE_SIZE_MB
+  }
+};
+
+module.exports = {
+  BYTES_PER_MB,
+  MAX_FILE_SIZE_MB,
+  MAX_FILE_SIZE_BYTES,
+  PLATFORM_LIMITS
+};

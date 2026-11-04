@@ -16,11 +16,27 @@ const FILE_TYPES = {
     extension: "mp4",
     contentType: "video/mp4",
     filename: "void-download.mp4"
+  },
+  photo: {
+    extension: "jpg",
+    contentType: "image/jpeg",
+    filename: "void-download.jpg"
+  },
+  image: {
+    extension: "jpg",
+    contentType: "image/jpeg",
+    filename: "void-download.jpg"
+  },
+  png: {
+    extension: "png",
+    contentType: "image/png",
+    filename: "void-download.png"
   }
 };
 
 function getFileType(req) {
-  return req.query.kind === "audio" ? FILE_TYPES.audio : FILE_TYPES.video;
+  const kind = String(req.query.kind || "").toLowerCase();
+  return FILE_TYPES[kind] || FILE_TYPES.video;
 }
 
 function getFilePath(token, fileType) {

@@ -3,6 +3,7 @@ const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
 const { validateYoutubeCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
+const { PLATFORM_LIMITS } = require("../config/limits");
 
 const {
   BROWSER_USER_AGENT,
@@ -13,12 +14,22 @@ const {
   downloadGenericAudio
 } = require("./engine-base.service");
 
+// Smart Adaptive hingga 720p 60fps/30fps (H.264/AAC)
 const PRIMARY_MERGE_FORMAT =
-  "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo[ext=mp4]+bestaudio/best[ext=mp4]/best";
-const FALLBACK_MERGE_FORMAT = "bestvideo+bestaudio/best/18";
+  "bv*[vcodec^=avc1][height<=720][fps>30][ext=mp4]+ba[ext=m4a]/" +
+  "bv*[vcodec^=avc1][height<=720][fps<=30][ext=mp4]+ba[ext=m4a]/" +
+  "bv*[vcodec^=avc1][height<=720][ext=mp4]+ba[ext=m4a]/" +
+  "bv*[height<=720][ext=mp4]+ba[ext=m4a]/" +
+  "b[height<=720][ext=mp4]/" +
+  "best[height<=720]/best";
+const FALLBACK_MERGE_FORMAT = "bestvideo[height<=720]+bestaudio/best[height<=720]/best/18";
 
 function normalizeYouTubeError(error) {
   const raw = getRawProcessError(error).toLowerCase();
+
+  if (raw.includes("file is larger than max-filesize") || raw.includes("larger than max-filesize")) {
+    return createServiceError(`Ukuran video melebihi batas maksimal ${PLATFORM_LIMITS.MAX_FILE_SIZE_MB} MB`, 400);
+  }
 
   if (raw.includes("private video") || raw.includes("this video is private")) {
     return createServiceError("Video tidak ditemukan atau bersifat privat", 404);
@@ -220,6 +231,11 @@ async function downloadYouTube(url) {
       throw metaError;
     }
 
+    // Validasi batas durasi YouTube (Maks. 1 Jam / 3.600 detik)
+    if (metadata?.duration && Number(metadata.duration) > PLATFORM_LIMITS.YOUTUBE.MAX_DURATION_SEC) {
+      throw createServiceError("Durasi video YouTube melebihi batas maksimal 1 jam (3.600 detik)", 400);
+    }
+
     const videoFile = await getOrCreateNormalizedVideo({
       sourceKey: `youtube-video:${url}`,
       sourceExtension: "mp4",
@@ -244,7 +260,7 @@ async function downloadYouTube(url) {
 
     const downloads = [
       {
-        label: "MP4 / VIDEO",
+        label: "MP4 / VIDEO (720P)",
         url: `/api/file?token=${videoFile.token}&download=1&filename=${encodeURIComponent(videoFilename)}`,
         format: "mp4",
         filename: videoFilename
@@ -262,7 +278,7 @@ async function downloadYouTube(url) {
         format: "mp3"
       });
       downloads.push({
-        label: "Audio Only",
+        label: "Audio Only (192 kbps MP3)",
         url: `/api/file?token=${audioFile.token}&kind=audio&download=1&filename=${encodeURIComponent(audioFilename)}`,
         format: "mp3",
         filename: audioFilename
@@ -282,7 +298,7 @@ async function downloadYouTube(url) {
       downloads
     };
   } catch (error) {
-    if (error.message?.startsWith("ERR:")) {
+    if (error.message?.startsWith("ERR:") || error.statusCode) {
       throw error;
     }
 

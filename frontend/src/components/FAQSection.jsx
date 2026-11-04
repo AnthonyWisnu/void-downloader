@@ -5,7 +5,12 @@ const faqs = [
   {
     question: "Which platforms are supported by VOID?",
     answer:
-      "VOID natively supports YouTube (Videos, Shorts, and Audio extraction), TikTok (Watermark-free videos and photo carousels), Instagram (Reels, multi-image posts, and active stories), and X / Twitter (Videos, GIFs, original photos, and audio)."
+      "VOID natively supports YouTube (Videos, Shorts, and Audio extraction), TikTok (Watermark-free videos and photo carousels), Instagram (Reels, multi-image posts, and active stories), X / Twitter (Videos, GIFs, original photos, and audio), and Pinterest (High-res uncompressed photos and pin videos)."
+  },
+  {
+    question: "What are the media size and duration limits in VOID?",
+    answer:
+      "All platforms support file downloads up to 400 MB. Duration limits: YouTube up to 1 Hour (Smart Adaptive 720p 60fps/30fps & 192 kbps MP3), TikTok up to 70 Minutes & 25 photo slides, Instagram up to 30 Minutes & 15 carousel items, X (Twitter) up to 30 Minutes & 10 media items, and Pinterest original HD photos and pin videos."
   },
   {
     question: "Does VOID require accounts, authentication, or extensions?",
@@ -20,7 +25,7 @@ const faqs = [
   {
     question: "Why do some videos offer audio extraction separately?",
     answer:
-      "For platforms like YouTube and X, the extractor provides a direct MP3 stream alongside video containers, allowing you to download clean audio tracks independently."
+      "For platforms like YouTube, TikTok, and X, the extractor provides a direct MP3 stream alongside video containers, allowing you to download clean audio tracks independently."
   },
   {
     question: "Why might extraction fail on certain links?",

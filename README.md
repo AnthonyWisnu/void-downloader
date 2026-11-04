@@ -1,6 +1,6 @@
 # VOID Downloader
 
-VOID Downloader adalah aplikasi web modern single-page untuk mengunduh media dari 4 platform utama: YouTube, TikTok, Instagram, dan X (Twitter). Mendukung pengunduhan video, reels, shorts, stories, foto, slideshow carousel, dan audio MP3 berkualitas tinggi.
+VOID Downloader adalah aplikasi web modern single-page untuk mengunduh media dari 5 platform utama: YouTube, TikTok, Instagram, X (Twitter), dan Pinterest. Mendukung pengunduhan video, reels, shorts, stories, foto, slideshow carousel, dan audio MP3 berkualitas tinggi.
 
 Antarmuka dibangun dengan gaya VOID Brutalist 2.0: tipografi teknis JetBrains Mono, border kontras tinggi, micro-interaction responsif, logo SVG resmi beresolusi tajam, dan tema adaptif dinamis yang otomatis bertransformasi mengikuti warna brand platform yang sedang diproses.
 
@@ -14,33 +14,45 @@ Sistem produksi aktif dan berjalan di: `https://voiddl.my.id`
 - **YouTube**: Mendukung video standar (hingga 1080p/720p), YouTube Shorts, YouTube Community posts, dan ekstraksi audio MP3 kualitas studio.
 - **TikTok**: Mendukung video tanpa watermark (HD), video dengan watermark, foto slideshow resolusi penuh, dan audio latar MP3.
 - **Instagram**: Mendukung Reels, postingan video feed, postingan foto tunggal, carousel multi-slide via gallery-dl fallback, Instagram Stories, dan audio track dengan dukungan autentikasi cookies Netscape serta guest extraction fallback otomatis.
-- **X (Twitter)**: Mendukung video tweet, animasi GIF (MP4), foto tunggal/slideshow multi-foto hingga 4 gambar dengan resolusi asli (orig), mixed media, dan audio MP3.
+- **X (Twitter)**: Mendukung video tweet, animasi GIF (MP4), foto tunggal/slideshow multi-foto hingga 10 media dengan resolusi asli (orig), mixed media, dan audio MP3.
+- **Pinterest**: Mendukung unduhan foto resolusi asli HD (uncompressed master asset) dan video pin MP4 resolusi penuh dengan penanganan otomatis shortlink `pin.it`.
 
-### 2. Video Normalization Pipeline (iOS & Cross-Device Compatible)
+### 2. Rincian Batas per Sosial Media
+
+| Platform & Command | Batas Ukuran | Batas Durasi | Batas Jumlah Media | Kualitas & Format |
+|---|---|---|---|---|
+| TikTok (.tt) | 400 MB | 70 Menit (1 jam 10 mnt) | Maks. 25 Foto Slide | Video tanpa watermark + BGM Audio MP3 |
+| Instagram (.ig) | 400 MB | 30 Menit | Maks. 15 Item / Slide | Reels, Story, Post foto/video HD |
+| YouTube Video (.yt) | 400 MB | 1 Jam (3.600 detik) | 1 Video | Smart Adaptive hingga 720p 60fps/30fps (H.264/AAC) |
+| YouTube Music (.play) | 400 MB | 1 Jam (3.600 detik) | 1 Audio | Audio MP3 192 kbps |
+| Twitter / X (.x, .twt) | 400 MB | 30 Menit | Maks. 10 Media per tweet | Foto asli HD, video, atau campuran |
+| Pinterest (.pin) | 400 MB | Sesuai durasi pin | 1 Pin media | Foto resolusi asli HD (uncompressed) / Video MP4 |
+
+### 3. Video Normalization Pipeline (iOS & Cross-Device Compatible)
 - Pemrosesan video otomatis via FFmpeg dan FFprobe:
   - Video di-remux atau ditranscode ke profil kompatibel universal: H.264 (AVC baseline/high), chroma pixel format YUV420p, dimensi genap (even dimensions).
   - Audio dikodekan ke AAC 128 kbps.
   - Flag MP4 `+faststart` disematkan di awal file (moov atom di awal) agar video dapat langsung di-stream dan diputar tanpa menunggu download selesai di Safari, iOS, Chrome, dan Android.
 
-### 3. Concurrency Semaphore & Proteksi Sumber Daya Server
+### 4. Concurrency Semaphore & Proteksi Sumber Daya Server
 - Dirancang khusus untuk efisiensi tinggi pada VPS berspesifikasi hemat (misalnya 2 vCPU / 2 GB RAM).
 - In-memory `ConcurrencyLimiter` (Semaphore) membatasi proses berat simultan (`MAX_CONCURRENT_HEAVY_JOBS = 2`).
 - Operasi transcode CPU-bound FFmpeg dan merge video `yt-dlp` otomatis mengantre dengan batas waktu tunggu terukur (timeout 60 detik), mencegah terjadinya Linux Out-of-Memory (OOM) Killer.
 - Pembacaan metadata JSON (`--dump-json`) tetap dieksekusi instan tanpa menahan slot antrian video.
 
-### 4. Smart Caching & Manajemen Kuota Disk LRU
+### 5. Smart Caching & Manajemen Kuota Disk LRU
 - Manajemen cache berbasis hash SHA-256 di direktori temporary sistem (`/tmp/void-dl-cache`).
 - Dukungan HTTP 206 Partial Content (Byte-Range requests) untuk pemutaran instan pada preview video dan audio di browser.
-- **Pembersihan Berbasis Kuota LRU**: Jika akumulasi file di direktori cache melebihi 3 GB (`MAX_CACHE_SIZE_BYTES`), sistem otomatis menghapus berkas tertua (`mtimeMs`) hingga kapasitas turun ke batas aman (2.1 GB).
+- **Pembersihan Berbasis Kuota LRU**: Jika akumulasi file di direktori cache melebihi 5 GB (`MAX_CACHE_SIZE_BYTES`), sistem otomatis menghapus berkas tertua (`mtimeMs`) hingga kapasitas turun ke batas aman (3.5 GB).
 - Pembersihan berkas kedaluwarsa berbasis waktu (TTL 2 jam) tetap berjalan secara berkala setiap 30 menit.
 
-### 5. Keamanan & Proteksi SSRF Anti-DNS Rebinding
+### 6. Keamanan & Proteksi SSRF Anti-DNS Rebinding
 - **Safe Socket Agent**: Menghalangi akses ke seluruh jangkauan IP privat, loopback, link-local, carrier-grade NAT (`100.64.0.0/10`), IPv6 ULA (`fc00::/7`), dan IPv4-mapped IPv6 (`::ffff:127.0.0.1`).
 - Menggunakan custom HTTP/HTTPS Agent dengan `safeDnsLookup` yang memvalidasi alamat IP saat koneksi socket TCP dibuka, menutup celah Time-of-Check to Time-of-Use (TOCTOU) DNS Rebinding.
 - **Batch ZIP Protection**: Pembatasan metode `POST` saja, kuota maksimal 30 item per arsip, dan pemutus stream otomatis (`req.on("close")`) saat pengguna membatalkan unduhan guna mencegah eksploitasi bandwidth dan memori.
 - Media proxy server-side untuk melindungi privasi pengguna dan mencegah pembatasan CORS atau hotlinking dari CDN pihak ketiga.
 
-### 6. Standardisasi Nama Berkas (Collision-Proof)
+### 7. Standardisasi Nama Berkas (Collision-Proof)
 - Format penamaan file konsisten dan informatif di semua platform:
   - Format: `[VOID]_[Platform]_[Author]_[Title]_[Kind]_[Timestamp].[ext]`
   - Mencegah benturan nama file, membersihkan karakter ilegal OS, dan memudahkan arsip unduhan pengguna.

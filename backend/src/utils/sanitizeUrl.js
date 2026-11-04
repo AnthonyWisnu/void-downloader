@@ -34,6 +34,13 @@ const X_HOSTS = new Set([
   "mobile.twitter.com"
 ]);
 
+const PINTEREST_HOSTS = new Set([
+  "pinterest.com",
+  "www.pinterest.com",
+  "pin.it",
+  "id.pinterest.com"
+]);
+
 function getPlatform(hostname) {
   if (TIKTOK_HOSTS.has(hostname) || hostname.endsWith(".tiktok.com")) {
     return "tiktok";
@@ -49,6 +56,16 @@ function getPlatform(hostname) {
 
   if (X_HOSTS.has(hostname) || hostname.endsWith(".x.com") || hostname.endsWith(".twitter.com")) {
     return "x";
+  }
+
+  if (
+    PINTEREST_HOSTS.has(hostname) ||
+    hostname.endsWith(".pinterest.com") ||
+    hostname.includes("pinterest.") ||
+    hostname === "pin.it" ||
+    hostname.endsWith(".pin.it")
+  ) {
+    return "pinterest";
   }
 
   return null;

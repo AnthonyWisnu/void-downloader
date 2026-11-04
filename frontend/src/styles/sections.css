@@ -148,6 +148,19 @@
   background: rgba(176, 38, 255, 0.06);
 }
 
+/* Pinterest Channel */
+.card-pinterest::before { background: var(--brand-pinterest); }
+.card-pinterest:hover {
+  border-color: var(--brand-pinterest);
+  box-shadow: 0 12px 32px var(--brand-pinterest-glow);
+}
+.card-pinterest .platform-card-scope { color: #f87171; }
+.card-pinterest .platform-format-pill {
+  border-color: rgba(230, 0, 35, 0.3);
+  color: #f87171;
+  background: rgba(230, 0, 35, 0.06);
+}
+
 .platform-card-header {
   display: flex;
   align-items: center;

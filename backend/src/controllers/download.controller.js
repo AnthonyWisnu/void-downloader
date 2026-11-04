@@ -5,6 +5,7 @@ const { downloadTikTok } = require("../services/tiktok.service");
 const { downloadInstagram } = require("../services/instagram.service");
 const { downloadYouTube } = require("../services/youtube.service");
 const { downloadX } = require("../services/x.service");
+const { downloadPinterest } = require("../services/pinterest.service");
 
 const DEFAULT_ERROR = "URL tidak valid atau konten tidak dapat diakses";
 
@@ -51,6 +52,8 @@ async function downloadContent(req, res) {
       result = await downloadYouTube(sanitized.url);
     } else if (sanitized.platform === "x") {
       result = await downloadX(sanitized.url);
+    } else if (sanitized.platform === "pinterest") {
+      result = await downloadPinterest(sanitized.url);
     } else {
       res.status(400).json({ error: "ERR: " + DEFAULT_ERROR });
       return;

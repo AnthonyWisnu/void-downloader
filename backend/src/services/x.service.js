@@ -1,6 +1,7 @@
 const axios = require("axios");
 const { createServiceError } = require("../utils/errors");
 const { generateMediaFilename } = require("../utils/filenameHelper");
+const { PLATFORM_LIMITS } = require("../config/limits");
 const { validateXCookies } = require("./cookies.service");
 const { getOrCreateNormalizedVideo } = require("./video-cache.service");
 const {
@@ -18,6 +19,9 @@ const FALLBACK_MERGE_FORMAT = "best";
 
 function normalizeXError(error) {
   const raw = getRawProcessError(error).toLowerCase();
+  if (raw.includes("file is larger than max-filesize") || raw.includes("larger than max-filesize")) {
+    return createServiceError(`Ukuran video melebihi batas maksimal ${PLATFORM_LIMITS.MAX_FILE_SIZE_MB} MB`, 400);
+  }
 
   if (raw.includes("status is not available") || raw.includes("not found") || raw.includes("http error 404")) {
     return createServiceError("Tweet tidak ditemukan atau telah dihapus", 404);
@@ -325,7 +329,8 @@ async function downloadX(url) {
       // Kasus 1A: Hanya Foto / Slideshow (tanpa video)
       if (videos.length === 0 && photos.length > 0) {
         const type = photos.length > 1 ? "slideshow" : "photo";
-        const downloads = photos.map((imgUrl, index) => {
+        const safePhotos = photos.slice(0, PLATFORM_LIMITS.X.MAX_MEDIA_ITEMS);
+        const downloads = safePhotos.map((imgUrl, index) => {
           const filename = generateMediaFilename({
             platform: "x",
             author,
@@ -543,6 +548,9 @@ async function downloadX(url) {
     // Video/GIF Tweet via yt-dlp
     const hasAudio = hasAudioStream(metadata);
     const duration = Number(metadata.duration || 0);
+    if (duration > PLATFORM_LIMITS.X.MAX_DURATION_SEC) {
+      throw createServiceError("Durasi video X (Twitter) melebihi batas maksimal 30 menit", 400);
+    }
     const isGif = !hasAudio && duration > 0 && duration <= 10;
     const type = isGif ? "gif" : "video";
     const label = isGif ? "MP4 / GIF" : "MP4 / VIDEO";

@@ -1,4 +1,4 @@
-import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
+import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo, PinterestLogo } from "./BrandLogos";
 import { Radio, ArrowUpRight } from "lucide-react";
 
 const platforms = [
@@ -9,8 +9,8 @@ const platforms = [
     scope: "VIDEO & AUDIO MATRIX",
     colorClass: "card-youtube",
     logo: <YouTubeLogo size={32} />,
-    formats: ["1080P FHD", "SHORTS", "192K MP3", "AUDIO ONLY"],
-    description: "Extract Full HD videos, YouTube Shorts, and dedicated audio tracks with instant stream playback."
+    formats: ["720P ADAPTIVE", "SHORTS", "192K MP3", "AUDIO ONLY"],
+    description: "Extract Smart Adaptive videos up to 720p 60fps/30fps, Shorts, and 192 kbps MP3 audio up to 1 hour (400 MB)."
   },
   {
     id: "tiktok",
@@ -19,8 +19,8 @@ const platforms = [
     scope: "WATERMARK-FREE ENGINE",
     colorClass: "card-tiktok",
     logo: <TikTokLogo size={32} />,
-    formats: ["NO WATERMARK", "SLIDESHOW", "SOUND MP3", "WATERMARK"],
-    description: "Extract clean, watermark-free videos, multi-image slideshow carousels, and viral background sounds."
+    formats: ["NO WATERMARK", "SLIDES (25)", "BGM MP3", "70 MENIT"],
+    description: "Extract clean, watermark-free videos up to 70 minutes, multi-photo carousels up to 25 slides, and viral BGM audio."
   },
   {
     id: "instagram",
@@ -29,8 +29,8 @@ const platforms = [
     scope: "FEED, REELS, STORIES",
     colorClass: "card-instagram",
     logo: <InstagramLogo size={32} />,
-    formats: ["REELS MP4", "FEED POSTS", "PUBLIC STORIES", "CAROUSEL"],
-    description: "Query high-bitrate Reels, multi-post image albums, and active public Stories without quality downsampling."
+    formats: ["REELS MP4", "POSTS", "STORIES", "CAROUSEL (15)"],
+    description: "Query high-bitrate Reels up to 30 minutes, multi-post image albums up to 15 items, and active public Stories."
   },
   {
     id: "x",
@@ -40,7 +40,17 @@ const platforms = [
     colorClass: "card-x",
     logo: <XLogo size={32} />,
     formats: ["MP4 VIDEO", "ORIGINAL JPG", "LOOPING GIF", "AUDIO"],
-    description: "Download embedded video clips, looping GIFs, and full uncompressed master photos up to 4 images per tweet."
+    description: "Download embedded video clips up to 30 minutes, looping GIFs, and full uncompressed master photos up to 10 media per tweet."
+  },
+  {
+    id: "pinterest",
+    tag: "CH.05",
+    name: "Pinterest",
+    scope: "HD PHOTO & PIN VIDEO",
+    colorClass: "card-pinterest",
+    logo: <PinterestLogo size={32} />,
+    formats: ["ORIGINAL HD", "PIN VIDEO", "UNCOMPRESSED", "MAX 400MB"],
+    description: "Download original uncompressed master photos and high-resolution pin videos directly without quality degradation."
   }
 ];
 
@@ -88,7 +98,7 @@ function PlatformSupport() {
             <Radio size={14} className="platform-header-icon" aria-hidden="true" />
             <span className="section-tag">[03] CHANNEL MATRIX</span>
           </div>
-          <span className="platform-header-status">ALL PROTOCOLS ACTIVE (4/4)</span>
+          <span className="platform-header-status">ALL PROTOCOLS ACTIVE (5/5)</span>
         </div>
 
         <div className="platform-grid">

@@ -386,6 +386,13 @@
 }
 .channel-x:hover .hero-channel-badge { color: #c084fc; }
 
+.channel-pin::before { background-color: var(--brand-pinterest); }
+.channel-pin:hover {
+  border-color: var(--brand-pinterest);
+  box-shadow: 0 0 16px var(--brand-pinterest-glow);
+}
+.channel-pin:hover .hero-channel-badge { color: #f87171; }
+
 @media (max-width: 640px) {
   .hero {
     padding: var(--space-md);

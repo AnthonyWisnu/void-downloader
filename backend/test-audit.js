@@ -1,7 +1,9 @@
 const assert = require("assert");
 const { isPrivateAddress, validateMediaUrl } = require("./src/utils/safeRequest");
+const { sanitizeUrl } = require("./src/utils/sanitizeUrl");
 const { ConcurrencyLimiter } = require("./src/utils/concurrency");
-const { cleanupCacheLRU, ensureCacheDir } = require("./src/services/media-cache.service");
+const { cleanupCacheLRU, ensureCacheDir, assertFileWithinSizeLimit } = require("./src/services/media-cache.service");
+const { PLATFORM_LIMITS, MAX_FILE_SIZE_MB, MAX_FILE_SIZE_BYTES } = require("./src/config/limits");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -136,6 +138,56 @@ async function runTests() {
   assert.strictEqual(formatUserSafeError(safeError), "ERR: Video tidak ditemukan atau bersifat privat");
 
   process.stdout.write("   -> Sukses: Filter error berhasil mencegah kebocoran informasi teknis.\n\n");
+
+  // 5. Uji Pinterest Sanitization & Platform Limits
+  process.stdout.write("5. Pengujian Pinterest Sanitization & Konfigurasi Batas Platform...\n");
+
+  const pinterestUrls = [
+    "https://pin.it/7wXyZ12",
+    "https://www.pinterest.com/pin/123456789012345678/",
+    "https://id.pinterest.com/pin/987654321/",
+    "http://pinterest.co.uk/pin/111222333/"
+  ];
+
+  for (const purl of pinterestUrls) {
+    const sanitized = sanitizeUrl(purl);
+    assert.strictEqual(sanitized.ok, true, `Pinterest URL harus valid: ${purl}`);
+    assert.strictEqual(sanitized.platform, "pinterest", `Platform harus terdeteksi sebagai pinterest: ${purl}`);
+  }
+
+  assert.strictEqual(MAX_FILE_SIZE_MB, 400, "Batas maksimal file global harus 400 MB");
+  assert.strictEqual(MAX_FILE_SIZE_BYTES, 400 * 1024 * 1024, "Batas byte file harus 400 * 1024 * 1024");
+  assert.strictEqual(PLATFORM_LIMITS.TIKTOK.MAX_DURATION_SEC, 4200, "Batas durasi TikTok harus 70 menit (4.200s)");
+  assert.strictEqual(PLATFORM_LIMITS.TIKTOK.MAX_SLIDES, 25, "Batas slide foto TikTok harus 25");
+  assert.strictEqual(PLATFORM_LIMITS.INSTAGRAM.MAX_DURATION_SEC, 1800, "Batas durasi Instagram harus 30 menit (1.800s)");
+  assert.strictEqual(PLATFORM_LIMITS.INSTAGRAM.MAX_SLIDES, 15, "Batas slide Instagram harus 15");
+  assert.strictEqual(PLATFORM_LIMITS.YOUTUBE.MAX_DURATION_SEC, 3600, "Batas durasi YouTube harus 1 jam (3.600s)");
+  assert.strictEqual(PLATFORM_LIMITS.X.MAX_DURATION_SEC, 1800, "Batas durasi X (Twitter) harus 30 menit (1.800s)");
+  assert.strictEqual(PLATFORM_LIMITS.X.MAX_MEDIA_ITEMS, 10, "Batas media item X (Twitter) harus 10");
+
+  // Uji assertFileWithinSizeLimit
+  const sizeTestDir = path.join(os.tmpdir(), `test-size-limit-${Date.now()}`);
+  fs.mkdirSync(sizeTestDir, { recursive: true });
+  try {
+    const smallFile = path.join(sizeTestDir, "small.bin");
+    const oversizedFile = path.join(sizeTestDir, "oversized.bin");
+
+    fs.writeFileSync(smallFile, Buffer.alloc(1024, "x"));
+    fs.writeFileSync(oversizedFile, Buffer.alloc(2048, "y"));
+
+    // Batas 1500 bytes: small (1024) lolos, oversized (2048) melempar error
+    assert.doesNotThrow(() => assertFileWithinSizeLimit(smallFile, 1500));
+    assert.throws(
+      () => assertFileWithinSizeLimit(oversizedFile, 1500),
+      /Ukuran file melebihi batas maksimal/
+    );
+  } finally {
+    try {
+      fs.rmSync(sizeTestDir, { recursive: true, force: true });
+    } catch {}
+  }
+
+  process.stdout.write("   -> Sukses: Validasi Pinterest dan konfigurasi batas platform lolos 100%.\n\n");
 
   process.stdout.write("=== SEMUA PENGUJIAN AUDIT BERHASIL LOLOS 100% ===\n");
 }

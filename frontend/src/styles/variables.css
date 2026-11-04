@@ -37,6 +37,10 @@
   --brand-x-glow: rgba(176, 38, 255, 0.38);
   --brand-x-bg: rgba(176, 38, 255, 0.09);
 
+  --brand-pinterest: #e60023;
+  --brand-pinterest-glow: rgba(230, 0, 35, 0.35);
+  --brand-pinterest-bg: rgba(230, 0, 35, 0.08);
+
   /* Cyber Technical Neon Accents */
   --neon-emerald: #00ff88;
   --neon-emerald-glow: rgba(0, 255, 136, 0.3);
@@ -133,4 +137,11 @@
   --platform-glow: var(--brand-x-glow);
   --platform-border: var(--brand-x);
   --platform-bg: var(--brand-x-bg);
+}
+
+[data-platform="pinterest"] {
+  --platform-color: var(--brand-pinterest);
+  --platform-glow: var(--brand-pinterest-glow);
+  --platform-border: var(--brand-pinterest);
+  --platform-bg: var(--brand-pinterest-bg);
 }

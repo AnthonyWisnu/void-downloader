@@ -1,4 +1,4 @@
-import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo } from "./BrandLogos";
+import { YouTubeLogo, TikTokLogo, InstagramLogo, XLogo, PinterestLogo } from "./BrandLogos";
 import { Sparkles, Terminal, Cpu } from "lucide-react";
 
 function HeroSection() {
@@ -6,7 +6,7 @@ function HeroSection() {
     {
       id: "yt",
       name: "YouTube",
-      formatBadge: "1080p · SHORTS · MP3",
+      formatBadge: "720p · SHORTS · MP3",
       colorClass: "channel-yt",
       logo: <YouTubeLogo size={22} />
     },
@@ -30,6 +30,13 @@ function HeroSection() {
       formatBadge: "ORIG PHOTO · GIF · VIDEO",
       colorClass: "channel-x",
       logo: <XLogo size={22} />
+    },
+    {
+      id: "pin",
+      name: "Pinterest",
+      formatBadge: "ORIG HD · PIN MP4",
+      colorClass: "channel-pin",
+      logo: <PinterestLogo size={22} />
     }
   ];
 
@@ -39,12 +46,12 @@ function HeroSection() {
         <div className="hero-meta-bar mono">
           <div className="hero-meta-title-wrapper">
             <span className="hero-status-pulse" />
-            <span className="hero-meta-title">VOID // MEDIA DECK ENGINE v2.4</span>
+            <span className="hero-meta-title">VOID // MEDIA DECK ENGINE v2.5</span>
           </div>
           <div className="hero-meta-right">
             <span className="hero-meta-chip">
               <Cpu size={12} aria-hidden="true" />
-              <span>FFMPEG H.264 FASTSTART</span>
+              <span>FFMPEG H.264 FASTSTART · 400MB LIMIT</span>
             </span>
             <span className="hero-meta-index">[SYS.01]</span>
           </div>
@@ -53,7 +60,7 @@ function HeroSection() {
         <div className="hero-brand-block">
           <div className="hero-badge-live mono">
             <Sparkles size={13} className="hero-sparkle-icon" aria-hidden="true" />
-            <span>DIRECT CDN PIPELINE : ZERO LOGS : LOSSLESS QUALITY</span>
+            <span>DIRECT CDN PIPELINE : ZERO LOGS : MAX 400 MB CAPACITY</span>
           </div>
           <h1 className="hero-headline">
             UNIVERSAL MEDIA
@@ -61,7 +68,7 @@ function HeroSection() {
             <span className="hero-headline-accent">EXTRACTION DECK.</span>
           </h1>
           <p className="hero-subheadline mono">
-            High-speed, uncompressed video, audio synthesis, and raw photo scraping from YouTube, TikTok, Instagram, and X without trackers or ads.
+            High-speed, uncompressed video, audio synthesis, and raw photo scraping from YouTube, TikTok, Instagram, X, and Pinterest without trackers or ads.
           </p>
         </div>
 
